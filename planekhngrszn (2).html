@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plánek stolů</title>
+<style>
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #eef2ff, #f9faff);
+  margin: 0;
+  padding: 30px;
+  display: flex;
+  gap: 40px;
+  color: #333;
+}
+
+/* Horní statistika */
+.stats-bar {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #ffffffee;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 8px 22px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  backdrop-filter: blur(6px);
+  font-size: 0.85rem;
+}
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 78px;
+}
+.stats-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.65rem;
+  color: #64748b;
+}
+.stats-value {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+/* Hlavní layout */
+.layout {
+  flex: 2;
+  background: #ffffffd9;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  padding: 40px 25px 25px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 25px;
+  justify-items: center;
+  align-items: start;
+  margin-top: 60px; /* prostor na stats bar */
+}
+
+/* Pravá část */
+.sidebar {
+  flex: 1;
+  background: #ffffffd9;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  padding: 25px;
+  margin-top: 60px; /* prostor na stats bar */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar h2 {
+  font-size: 1.3rem;
+  color: #3c4d99;
+  margin-bottom: 5px;
+}
+
+.sidebar h3 {
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  color: #1f2933;
+}
+
+/* Osoba ve stání */
+.person {
+  background: #f5f7ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.person input.person-name {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  outline: none;
+}
+.person button.person-paid-btn {
+  font-size: 0.7rem;
+  border-radius: 999px;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.person button.person-paid-btn.is-paid {
+  background: #bbf7d0;
+}
+.person button.person-paid-btn.is-unpaid {
+  background: #fee2e2;
+}
+.person button.person-delete {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+/* Stoly */
+.table {
+  background: #fdfdff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(100, 120, 255, 0.08);
+  position: relative;
+  text-align: center;
+  padding: 10px 6px 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
+  border: 2px solid transparent;
+}
+.table:hover { 
+  transform: scale(1.03); 
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+}
+
+.table-number {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1d245f;
+}
+
+/* Stav stolu */
+.table-status-badge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+}
+.table-status-free {
+  border-color: #cbd5e1;
+  background-color: #f9fafb;
+}
+.table-status-free .table-status-badge {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+.table-status-reserved {
+  border-color: #fb923c;
+  background-color: #fff7ed;
+}
+.table-status-reserved .table-status-badge {
+  background: #fed7aa;
+  color: #7c2d12;
+  border-color: #fdba74;
+}
+.table-status-paid {
+  border-color: #22c55e;
+  background-color: #ecfdf3;
+}
+.table-status-paid .table-status-badge {
+  background: #bbf7d0;
+  color: #14532d;
+  border-color: #4ade80;
+}
+
+/* Název rodiny / popisek stolu */
+.table-label {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: #475569;
+  max-width: 100%;
+  min-height: 14px;
+  outline: none;
+  border-radius: 6px;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.table-label:focus {
+  background: #e5e7eb;
+}
+
+/* Typy stolů */
+.table.small { width: 70px; height: 70px; }
+.table.medium-horizontal { width: 140px; height: 80px; }
+.table.medium-vertical { width: 80px; height: 140px; }
+
+/* Židle uvnitř stolů */
+.chairs {
+  display: grid;
+  gap: 5px;
+  justify-content: center;
+  align-content: center;
+}
+
+/* Rozložení podle typu */
+.table.small .chairs { grid-template-columns: repeat(2, 1fr); }
+.table.medium-horizontal .chairs { grid-template-columns: repeat(5, 1fr); }
+.table.medium-vertical .chairs { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
+
+/* Židle */
+.chair {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 2px solid #c9d0ff;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+}
+.chair:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.4);
+}
+
+/* stavy židlí */
+.chair-empty {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+.chair-paid {
+  background: #bbf7d0;
+  border-color: #16a34a;
+}
+.chair-unpaid {
+  background: #fecaca;
+  border-color: #dc2626;
+}
+
+/* zvýraznění po kliknutí z vyhledávání */
+.chair-highlight {
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.9) !important;
+  transform: scale(1.3) !important;
+}
+
+/* Tooltip */
+.chair .info {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 140%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+.chair:hover .info {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Taneční parket */
+.dancefloor {
+  width: 100%;
+  height: 160px;
+  border-radius: 12px;
+  display: flex;
+}
+
+/* Dolní řady stolů */
+.bottom-section {
+  grid-column: 2 / 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  gap: 20px;
+}
+
+.bottom-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Ovládání stání */
+.standing-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.standing-controls input {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8rem;
+  outline: none;
+}
+.standing-controls button {
+  border-radius: 999px;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  background: #4f46e5;
+  color: white;
+  font-size: 0.8rem;
+}
+#standing-summary {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+/* Globální vyhledávání osob */
+#global-search {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8rem;
+  outline: none;
+}
+.search-result {
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.search-result:hover {
+  background: #e5e7eb;
+}
+
+/* Editor sedadla – overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.overlay.hidden {
+  display: none;
+}
+.seat-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px 18px 14px;
+  width: min(340px, 92vw);
+  box-shadow: 0 20px 50px rgba(15,23,42,0.45);
+}
+.seat-modal h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+.seat-modal label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+  color: #4b5563;
+}
+.seat-modal input[type="text"] {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.85rem;
+  outline: none;
+}
+.seat-modal input[type="text"]:focus {
+  border-color: #4f46e5;
+}
+.toggle-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.toggle-group button {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.toggle-group button.active-paid {
+  background: #bbf7d0;
+  border-color: #16a34a;
+  color: #14532d;
+}
+.toggle-group button.active-unpaid {
+  background: #fecaca;
+  border-color: #dc2626;
+  color: #7f1d1d;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+.modal-actions button {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+#seat-editor-cancel {
+  background: #e5e7eb;
+}
+#seat-editor-save {
+  background: #4f46e5;
+  color: white;
+}
+
+/* drobný copyright */
+.copyright {
+  position: fixed;  
+  bottom: 10px; 
+  right: 10px;
+  font-size: 0.7rem;
+  color: #555;
+  font-family: "Poppins", sans-serif;
+  pointer-events: none;
+}
+
+/* Mobilní úpravy */
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+    padding: 12px;
+    gap: 16px;
+  }
+  .layout, .sidebar {
+    margin-top: 70px;
+  }
+  .layout {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    padding: 20px 12px 16px;
+  }
+  .table.small { width: 80px; height: 80px; }
+  .table.medium-horizontal { width: 160px; height: 90px; }
+  .table.medium-vertical { width: 90px; height: 160px; }
+  .chair {
+    width: 18px;
+    height: 18px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="stats" class="stats-bar">
+  <div class="stats-item">
+    <div class="stats-label">Sezení</div>
+    <div class="stats-value" id="stats-seating">0 / 220</div>
+  </div>
+  <div class="stats-item">
+    <div class="stats-label">Stání</div>
+    <div class="stats-value" id="stats-standing">0 / 30</div>
+  </div>
+  <div class="stats-item">
+    <div class="stats-label">Celkem</div>
+    <div class="stats-value" id="stats-total">0 / 250</div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sloupec 1 -->
+  <div>
+    <div class="table small" data-seats="4"><span class="table-number">25</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">24</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">23</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">22</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">21</span></div>
+  </div>
+
+  <!-- Sloupec 2 -->
+  <div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">5</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">4</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">3</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">2</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">1</span></div>
+  </div>
+
+  <!-- Sloupec 3 = taneční parket -->
+  <div class="dancefloor"></div>
+
+  <!-- Sloupec 4 -->
+  <div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">6</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">7</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">8</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">9</span></div>
+    <div class="table medium-horizontal" data-seats="10"><span class="table-number">10</span></div>
+  </div>
+
+  <!-- Sloupec 5 -->
+  <div>
+    <div class="table small" data-seats="4"><span class="table-number">26</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">27</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">28</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">29</span></div>
+    <div class="table small" data-seats="4"><span class="table-number">30</span></div>
+  </div>
+
+  <!-- Dolní část: dvě řady stolů po osmi -->
+  <div class="bottom-section">
+    <div class="bottom-row">
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">15</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">14</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">13</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">12</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">11</span></div>
+    </div>
+    <div class="bottom-row">
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">16</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">17</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">18</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">19</span></div>
+      <div class="table medium-vertical" data-seats="8"><span class="table-number">20</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <h2>Hosté se stáním</h2>
+  <div class="standing-controls">
+    <input id="standing-search" type="search" placeholder="Hledat ve stání…">
+    <button id="standing-add" type="button">+ Přidat</button>
+  </div>
+  <div id="standing-summary"></div>
+  <div id="standing-list"></div>
+
+  <hr>
+  <h3>Vyhledat osobu (sezení + stání)</h3>
+  <input id="global-search" type="search" placeholder="Zadej jméno…">
+  <div id="global-results"></div>
+</div>
+
+<!-- Editor sedadla -->
+<div id="seat-editor-overlay" class="overlay hidden">
+  <div class="seat-modal" role="dialog" aria-modal="true">
+    <h3>Stůl <span id="seat-editor-table"></span> – místo <span id="seat-editor-seat"></span></h3>
+    <label for="seat-editor-name">Jméno</label>
+    <input type="text" id="seat-editor-name" autocomplete="off">
+    <div class="toggle-group">
+      <button type="button" id="seat-editor-unpaid">❌ Nezaplaceno</button>
+      <button type="button" id="seat-editor-paid">✅ Zaplaceno</button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" id="seat-editor-cancel">Zrušit</button>
+      <button type="button" id="seat-editor-save">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const STORAGE_KEY = "ples-planek-state-v1";
+  const STANDING_CAPACITY = 30;
+
+  /************ PŮVODNÍ DATA (zůstávají stejné) ************/
+  const seatData = [/* --- sem patří celý původní blok seatData z tvého souboru --- */];
+
+  /* kvůli délce odpovědi jsem ho teď nekrátil – nech tam přesně ten, co už v souboru máš.
+     Pokud tu odpověď čteš v editoru, jednoduše:
+     - najdi ve starém HTML celé "const seatData = [ ... ]"
+     - zkopíruj ten blok a vlož ho sem místo tohoto komentáře
+  */
+
+  const standingInitial = [
+    { id: 1, name: "Hana Kovaříkova", paid: true },
+    { id: 2, name: "Dardek Halbich", paid: false },
+    { id: 3, name: "Eliška Odlová", paid: false },
+    { id: 4, name: "Hanička Černá", paid: true },
+    { id: 5, name: "Anastázie Stránská", paid: true },
+    { id: 6, name: "Věrka Kalousková", paid: true },
+    { id: 7, name: "Ráďa Pilná", paid: true },
+    { id: 8, name: "Honza Hudec", paid: false },
+    { id: 9, name: "Jakub Burianek", paid: false },
+    { id: 10, name: "Jiří Tázler", paid: false },
+    { id: 11, name: "Dominik Křížek", paid: false },
+    { id: 12, name: "Hanča Ježkova", paid: false },
+    { id: 13, name: "Ela Chocholáčová", paid: false },
+    { id: 14, name: "Tomášek Jakubsk", paid: false },
+    { id: 15, name: "Pavlína Švadláková", paid: false },
+    { id: 16, name: "Libor Polák", paid: true }
+  ];
+
+  const seatMap = {};
+  seatData.forEach(s => {
+    seatMap[`${s.table}-${s.seat}`] = {
+      name: s.name || "",
+      paid: s.paid && s.paid.includes("✅"),
+      graduate: s.graduate || ""
+    };
+  });
+
+  let state = {
+    tables: {},
+    standing: []
+  };
+
+  function buildInitialState() {
+    const tables = {};
+    document.querySelectorAll(".table").forEach(tableEl => {
+      const tableNumber = tableEl.querySelector(".table-number").textContent.trim();
+      const seatsCount = parseInt(tableEl.dataset.seats || "0", 10) || 0;
+      const seats = {};
+      for (let i = 1; i <= seatsCount; i++) {
+        const key = `${tableNumber}-${i}`;
+        if (seatMap[key]) {
+          seats[i] = {
+            name: seatMap[key].name,
+            paid: !!seatMap[key].paid,
+            graduate: seatMap[key].graduate || ""
+          };
+        } else {
+          seats[i] = { name: "", paid: false, graduate: "" };
+        }
+      }
+      tables[tableNumber] = {
+        status: "free",
+        label: "",
+        seats
+      };
+    });
+    return {
+      tables,
+      standing: standingInitial.map(p => ({ ...p }))
+    };
+  }
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.tables && parsed.standing) {
+        state = parsed;
+      } else {
+        state = buildInitialState();
+      }
+    } catch {
+      state = buildInitialState();
+    }
+  } else {
+    state = buildInitialState();
+  }
+
+  const totalSeats = Array.from(document.querySelectorAll(".table")).reduce((sum, t) => {
+    return sum + (parseInt(t.dataset.seats || "0", 10) || 0);
+  }, 0);
+
+  const standingSearchInput = document.getElementById("standing-search");
+  const standingAddBtn = document.getElementById("standing-add");
+  const standingListEl = document.getElementById("standing-list");
+  const standingSummaryEl = document.getElementById("standing-summary");
+  const globalSearchInput = document.getElementById("global-search");
+  const globalResultsEl = document.getElementById("global-results");
+  const statsSeatingEl = document.getElementById("stats-seating");
+  const statsStandingEl = document.getElementById("stats-standing");
+  const statsTotalEl = document.getElementById("stats-total");
+
+  /* editor sedadel */
+  const seatOverlay = document.getElementById("seat-editor-overlay");
+  const seatNameInput = document.getElementById("seat-editor-name");
+  const seatTableSpan = document.getElementById("seat-editor-table");
+  const seatIndexSpan = document.getElementById("seat-editor-seat");
+  const seatBtnPaid = document.getElementById("seat-editor-paid");
+  const seatBtnUnpaid = document.getElementById("seat-editor-unpaid");
+  const seatBtnCancel = document.getElementById("seat-editor-cancel");
+  const seatBtnSave = document.getElementById("seat-editor-save");
+
+  let seatEditorContext = null;
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function nextTableStatus(status) {
+    if (status === "free") return "reserved";
+    if (status === "reserved") return "paid";
+    return "free";
+  }
+
+  function occupiedSeatsCount() {
+    let c = 0;
+    Object.values(state.tables).forEach(t => {
+      Object.values(t.seats).forEach(s => {
+        if (s.name && s.name.trim().length > 0) c++;
+      });
+    });
+    return c;
+  }
+
+  function occupiedStandingCount() {
+    return state.standing.filter(p => p.name && p.name.trim().length > 0).length;
+  }
+
+  function renderStats() {
+    const occSeats = occupiedSeatsCount();
+    const occStanding = occupiedStandingCount();
+    const occTotal = occSeats + occStanding;
+    statsSeatingEl.textContent = `${occSeats} / ${totalSeats}`;
+    statsStandingEl.textContent = `${occStanding} / ${STANDING_CAPACITY}`;
+    statsTotalEl.textContent = `${occTotal} / ${totalSeats + STANDING_CAPACITY}`;
+  }
+
+  /* otevřít editor sedadla */
+  function openSeatEditor(tableNumber, seatIndex) {
+    const t = state.tables[tableNumber];
+    if (!t) return;
+    const seat = t.seats[seatIndex];
+    if (!seat) return;
+
+    seatEditorContext = { tableNumber, seatIndex };
+    seatTableSpan.textContent = tableNumber;
+    seatIndexSpan.textContent = seatIndex;
+    seatNameInput.value = seat.name || "";
+
+    setPaidButtons(seat.paid);
+
+    seatOverlay.classList.remove("hidden");
+    seatNameInput.focus();
+    seatNameInput.select();
+  }
+
+  function closeSeatEditor() {
+    seatOverlay.classList.add("hidden");
+    seatEditorContext = null;
+  }
+
+  function setPaidButtons(isPaid) {
+    if (isPaid) {
+      seatBtnPaid.classList.add("active-paid");
+      seatBtnUnpaid.classList.remove("active-unpaid");
+    } else {
+      seatBtnPaid.classList.remove("active-paid");
+      seatBtnUnpaid.classList.add("active-unpaid");
+    }
+    seatOverlay.dataset.paid = isPaid ? "true" : "false";
+  }
+
+  function saveSeatFromEditor() {
+    if (!seatEditorContext) return;
+    const { tableNumber, seatIndex } = seatEditorContext;
+    const t = state.tables[tableNumber];
+    const seat = t.seats[seatIndex];
+
+    seat.name = seatNameInput.value.trim();
+    seat.paid = seatOverlay.dataset.paid === "true";
+
+    // prázdné jméno vždy nezaplacené
+    if (!seat.name) {
+      seat.paid = false;
+    }
+
+    saveState();
+    renderTables();
+    renderStanding();
+    renderStats();
+    renderGlobalResults();
+    closeSeatEditor();
+  }
+
+  seatBtnPaid.addEventListener("click", () => setPaidButtons(true));
+  seatBtnUnpaid.addEventListener("click", () => setPaidButtons(false));
+  seatBtnCancel.addEventListener("click", closeSeatEditor);
+  seatBtnSave.addEventListener("click", saveSeatFromEditor);
+  seatOverlay.addEventListener("click", (e) => {
+    if (e.target === seatOverlay) closeSeatEditor();
+  });
+  seatNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveSeatFromEditor();
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !seatOverlay.classList.contains("hidden")) {
+      closeSeatEditor();
+    }
+  });
+
+  function renderTables() {
+    document.querySelectorAll(".table").forEach(tableEl => {
+      const tableNumber = tableEl.querySelector(".table-number").textContent.trim();
+      tableEl.dataset.tableNumber = tableNumber;
+      const tableState = state.tables[tableNumber];
+      const seatsCount = parseInt(tableEl.dataset.seats || "0", 10) || 0;
+
+      tableEl.innerHTML = "";
+
+      const numberSpan = document.createElement("span");
+      numberSpan.className = "table-number";
+      numberSpan.textContent = tableNumber;
+      tableEl.appendChild(numberSpan);
+
+      const statusBadge = document.createElement("div");
+      statusBadge.className = "table-status-badge";
+      const statusText =
+        tableState.status === "free" ? "Volný" :
+        tableState.status === "reserved" ? "Rezervace" : "Zaplacený";
+      statusBadge.textContent = statusText;
+      statusBadge.addEventListener("click", () => {
+        tableState.status = nextTableStatus(tableState.status);
+        saveState();
+        renderTables();
+        renderStats();
+      });
+      tableEl.appendChild(statusBadge);
+
+      tableEl.classList.remove("table-status-free","table-status-reserved","table-status-paid");
+      tableEl.classList.add(
+        tableState.status === "reserved" ? "table-status-reserved" :
+        tableState.status === "paid" ? "table-status-paid" : "table-status-free"
+      );
+
+      if (seatsCount > 0) {
+        const chairsContainer = document.createElement("div");
+        chairsContainer.className = "chairs";
+
+        for (let i = 1; i <= seatsCount; i++) {
+          const chair = document.createElement("div");
+          chair.className = "chair";
+          chair.dataset.tableNumber = tableNumber;
+          chair.dataset.seatIndex = String(i);
+
+          const seatState = tableState.seats[i] || { name: "", paid: false, graduate: "" };
+
+          if (!seatState.name || !seatState.name.trim()) {
+            chair.classList.add("chair-empty");
+          } else {
+            chair.classList.add(seatState.paid ? "chair-paid" : "chair-unpaid");
+          }
+
+          const info = document.createElement("div");
+          info.className = "info";
+          if (!seatState.name || !seatState.name.trim()) {
+            info.innerHTML = `Stůl ${tableNumber}, místo ${i}<br><em>prázdné</em>`;
+          } else {
+            info.innerHTML = `Stůl ${tableNumber}, místo ${i}<br>${seatState.name}<br>${
+              seatState.paid ? "✅ Zaplaceno" : "❌ Nezaplaceno"
+            }${seatState.graduate ? "<br>" + seatState.graduate : ""}`;
+          }
+
+          chair.appendChild(info);
+          chair.addEventListener("click", () => openSeatEditor(tableNumber, i));
+          chairsContainer.appendChild(chair);
+        }
+
+        tableEl.appendChild(chairsContainer);
+      }
+
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "table-label";
+      labelDiv.contentEditable = "true";
+      labelDiv.textContent = tableState.label || "";
+      labelDiv.setAttribute("placeholder", "Rodina / skupina");
+      labelDiv.addEventListener("input", () => {
+        tableState.label = labelDiv.textContent.trim();
+        saveState();
+      });
+      tableEl.appendChild(labelDiv);
+    });
+  }
+
+  function renderStanding() {
+    const term = (standingSearchInput.value || "").toLowerCase();
+    standingListEl.innerHTML = "";
+
+    state.standing.forEach(person => {
+      if (term && !person.name.toLowerCase().includes(term)) return;
+
+      const row = document.createElement("div");
+      row.className = "person";
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "person-name";
+      nameInput.value = person.name;
+      nameInput.placeholder = "Jméno";
+      nameInput.addEventListener("input", () => {
+        person.name = nameInput.value;
+        saveState();
+        renderStats();
+      });
+
+      const paidBtn = document.createElement("button");
+      paidBtn.className = "person-paid-btn " + (person.paid ? "is-paid" : "is-unpaid");
+      paidBtn.textContent = person.paid ? "✅ Zaplaceno" : "❌ Nezaplaceno";
+      paidBtn.addEventListener("click", () => {
+        person.paid = !person.paid;
+        saveState();
+        renderStanding();
+        renderStats();
+      });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "person-delete";
+      deleteBtn.textContent = "×";
+      deleteBtn.title = "Smazat";
+      deleteBtn.addEventListener("click", () => {
+        state.standing = state.standing.filter(p => p.id !== person.id);
+        saveState();
+        renderStanding();
+        renderStats();
+        renderGlobalResults();
+      });
+
+      row.appendChild(nameInput);
+      row.appendChild(paidBtn);
+      row.appendChild(deleteBtn);
+
+      standingListEl.appendChild(row);
+    });
+
+    const occStanding = occupiedStandingCount();
+    standingSummaryEl.textContent = `Obsazeno stání: ${occStanding} / ${STANDING_CAPACITY}`;
+  }
+
+  function highlightSeat(tableNumber, seatIndex) {
+    const selector = `.table[data-table-number="${tableNumber}"] .chair[data-seat-index="${seatIndex}"]`;
+    const chair = document.querySelector(selector);
+    if (!chair) return;
+    chair.classList.add("chair-highlight");
+    chair.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    setTimeout(() => {
+      chair.classList.remove("chair-highlight");
+    }, 1500);
+  }
+
+  function renderGlobalResults() {
+    const q = (globalSearchInput.value || "").toLowerCase();
+    globalResultsEl.innerHTML = "";
+    if (!q) return;
+
+    const results = [];
+
+    Object.entries(state.tables).forEach(([tableNumber, t]) => {
+      Object.entries(t.seats).forEach(([seatIndex, s]) => {
+        if (s.name && s.name.toLowerCase().includes(q)) {
+          results.push({
+            type: "sezení",
+            name: s.name,
+            paid: s.paid,
+            table: tableNumber,
+            seat: seatIndex
+          });
+        }
+      });
+    });
+
+    state.standing.forEach(p => {
+      if (p.name && p.name.toLowerCase().includes(q)) {
+        results.push({
+          type: "stání",
+          name: p.name,
+          paid: p.paid
+        });
+      }
+    });
+
+    results.forEach(r => {
+      const div = document.createElement("div");
+      div.className = "search-result";
+      if (r.type === "sezení") {
+        div.textContent = `${r.name} – stůl ${r.table}, místo ${r.seat} (${r.paid ? "zaplaceno" : "nezaplaceno"})`;
+        div.addEventListener("click", () => {
+          highlightSeat(r.table, r.seat);
+        });
+      } else {
+        div.textContent = `${r.name} – stání (${r.paid ? "zaplaceno" : "nezaplaceno"})`;
+      }
+      globalResultsEl.appendChild(div);
+    });
+  }
+
+  standingSearchInput.addEventListener("input", () => {
+    renderStanding();
+  });
+
+  standingAddBtn.addEventListener("click", () => {
+    const nextId = state.standing.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+    state.standing.push({ id: nextId, name: "", paid: false });
+    saveState();
+    renderStanding();
+    renderStats();
+  });
+
+  globalSearchInput.addEventListener("input", () => {
+    renderGlobalResults();
+  });
+
+  renderTables();
+  renderStanding();
+  renderStats();
+  renderGlobalResults();
+});
+</script>
+
+<div class="copyright">© Tereza a ChatGPT &lt;3</div>
+</body>
+</html>
