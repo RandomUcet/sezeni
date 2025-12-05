@@ -3,304 +3,196 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plánek stolů</title>
+ <title>Plán stolů - Maturitní ples</title>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-body {
-  font-family: "Poppins", sans-serif;
-  background: linear-gradient(135deg, #eef2ff, #f9faff);
+* {
+  box-sizing: border-box;
   margin: 0;
-  padding: 30px;
-  display: flex;
-  gap: 40px;
-  color: #333;
+  padding: 0;
 }
 
-/* Horní statistika */
-.stats-bar {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  background: #ffffffee;
-  border-radius: 999px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  padding: 8px 22px;
-  display: flex;
-  gap: 24px;
-  align-items: center;
-  backdrop-filter: blur(6px);
-  font-size: 0.85rem;
+:root {
+  --primary: #22c55e;
+  --primary-dark: #16a34a;
+  --secondary: #764ba2;
+  --success: #48bb78;
+  --danger: #f56565;
+  --warning: #ed8936;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
 }
-.stats-item {
+
+body {
+   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+   background: #f8fafc;
+   color: var(--gray-900);
+   min-height: 100vh;
+   padding: 20px;
+}
+
+/* View Toggle */
+.view-toggle {
+   position: fixed;
+   top: 20px;
+   right: 20px;
+   z-index: 1000;
+   display: none;
+   gap: 10px;
+   background: white;
+   padding: 8px;
+   border-radius: 12px;
+   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+#admin-view .view-toggle {
+   display: flex;
+}
+
+.view-toggle button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.view-toggle button.active {
+   background: var(--primary);
+   color: white;
+}
+
+.view-toggle button:not(.active) {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+/* Views */
+#admin-view, #guest-view {
+  display: none;
+}
+
+#admin-view.active, #guest-view.active {
+  display: block;
+}
+
+/* Statistics bar */
+.stats-bar {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+}
+
+.stat-item {
   display: flex;
   flex-direction: column;
-  min-width: 78px;
-}
-.stats-label {
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.65rem;
-  color: #64748b;
-}
-.stats-value {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #111827;
+  align-items: center;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+  border-radius: 12px;
+  min-width: 120px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* Hlavní layout */
-.layout {
+.stat-value {
+   font-size: 2.2rem;
+   font-weight: 800;
+   color: var(--primary);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* Main container */
+.container {
+  display: flex;
+  gap: 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* Layout - exact 5-column grid like original */
+.layout-wrapper {
   flex: 2;
-  background: #ffffffd9;
+  background: white;
   border-radius: 16px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  padding: 40px 25px 25px;
+  padding: 25px;
+}
+
+.layout {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 25px;
   justify-items: center;
   align-items: start;
-  margin-top: 60px; /* prostor na stats bar */
 }
 
-/* Pravá část */
-.sidebar {
-  flex: 1;
-  background: #ffffffd9;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  padding: 25px;
-  margin-top: 60px; /* prostor na stats bar */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sidebar h2 {
-  font-size: 1.3rem;
-  color: #3c4d99;
-  margin-bottom: 5px;
-}
-
-.sidebar h3 {
-  margin-top: 12px;
-  margin-bottom: 6px;
-  font-size: 0.95rem;
-  color: #1f2933;
-}
-
-/* Osoba ve stání */
-.person {
-  background: #f5f7ff;
-  border-radius: 10px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.person input.person-name {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 0.85rem;
-  outline: none;
-}
-.person button.person-paid-btn {
-  font-size: 0.7rem;
-  border-radius: 999px;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.person button.person-paid-btn.is-paid {
-  background: #bbf7d0;
-}
-.person button.person-paid-btn.is-unpaid {
-  background: #fee2e2;
-}
-.person button.person-delete {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0 4px;
-}
-
-/* Stoly */
-.table {
-  background: #fdfdff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(100, 120, 255, 0.08);
-  position: relative;
-  text-align: center;
-  padding: 10px 6px 6px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
-  border: 2px solid transparent;
-}
-.table:hover { 
-  transform: scale(1.03); 
-  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
-}
-
-.table-number {
-  position: absolute;
-  top: 4px;
-  left: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #1d245f;
-}
-
-/* Stav stolu */
-.table-status-badge {
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  font-size: 0.7rem;
-  padding: 3px 8px;
-  border-radius: 999px;
-  cursor: pointer;
-  user-select: none;
-  border: 1px solid transparent;
-}
-.table-status-free {
-  border-color: #cbd5e1;
-  background-color: #f9fafb;
-}
-.table-status-free .table-status-badge {
-  background: #e5e7eb;
-  color: #374151;
-  border-color: #d1d5db;
-}
-.table-status-reserved {
-  border-color: #fb923c;
-  background-color: #fff7ed;
-}
-.table-status-reserved .table-status-badge {
-  background: #fed7aa;
-  color: #7c2d12;
-  border-color: #fdba74;
-}
-.table-status-paid {
-  border-color: #22c55e;
-  background-color: #ecfdf3;
-}
-.table-status-paid .table-status-badge {
-  background: #bbf7d0;
-  color: #14532d;
-  border-color: #4ade80;
-}
-
-/* Název rodiny / popisek stolu */
-.table-label {
-  margin-top: 6px;
-  font-size: 0.7rem;
-  color: #475569;
-  max-width: 100%;
-  min-height: 14px;
-  outline: none;
-  border-radius: 6px;
-  padding: 2px 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.table-label:focus {
-  background: #e5e7eb;
-}
-
-/* Typy stolů */
-.table.small { width: 70px; height: 70px; }
-.table.medium-horizontal { width: 140px; height: 80px; }
-.table.medium-vertical { width: 80px; height: 140px; }
-
-/* Židle uvnitř stolů */
-.chairs {
-  display: grid;
-  gap: 5px;
-  justify-content: center;
-  align-content: center;
-}
-
-/* Rozložení podle typu */
-.table.small .chairs { grid-template-columns: repeat(2, 1fr); }
-.table.medium-horizontal .chairs { grid-template-columns: repeat(5, 1fr); }
-.table.medium-vertical .chairs { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
-
-/* Židle */
-.chair {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  border: 2px solid #c9d0ff;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s, border-color 0.2s, box-shadow 0.2s;
-}
-.chair:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.4);
-}
-
-/* stavy židlí */
-.chair-empty {
-  background: #e2e8f0;
-  border-color: #cbd5e1;
-}
-.chair-paid {
-  background: #bbf7d0;
-  border-color: #16a34a;
-}
-.chair-unpaid {
-  background: #fecaca;
-  border-color: #dc2626;
-}
-
-/* zvýraznění po kliknutí z vyhledávání */
-.chair-highlight {
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.9) !important;
-  transform: scale(1.3) !important;
-}
-
-/* Tooltip */
-.chair .info {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  bottom: 140%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-}
-.chair:hover .info {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Taneční parket */
+/* Dance floor */
 .dancefloor {
   width: 100%;
-  height: 160px;
+  height: 300px;
   border-radius: 12px;
+  background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+  border: 3px dashed var(--primary);
   display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
 }
 
-/* Dolní řady stolů */
+.dancefloor-icon {
+  font-size: 3rem;
+}
+
+.dancefloor-label {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.podium-line {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 5px;
+}
+
+/* Bottom section - spans columns 2-4 */
 .bottom-section {
   grid-column: 2 / 5;
   display: flex;
@@ -316,298 +208,1796 @@ body {
   gap: 20px;
 }
 
-/* Ovládání stání */
-.standing-controls {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-.standing-controls input {
+/* Sidebar */
+.sidebar {
   flex: 1;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid #cbd5e1;
-  font-size: 0.8rem;
-  outline: none;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  padding: 25px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  position: sticky;
+  top: 20px;
+  min-width: 320px;
 }
-.standing-controls button {
-  border-radius: 999px;
+
+.sidebar h2 {
+  font-size: 1.3rem;
+  color: var(--gray-900);
+  margin-bottom: 18px;
+  margin-top: 25px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.sidebar h2:first-of-type {
+  margin-top: 0;
+}
+
+/* Buttons */
+.config-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  flex: 1;
+  padding: 10px 16px;
   border: none;
-  padding: 4px 8px;
+  border-radius: 8px;
   cursor: pointer;
-  background: #4f46e5;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   color: white;
-  font-size: 0.8rem;
-}
-#standing-summary {
-  font-size: 0.8rem;
-  color: #4b5563;
+  box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 }
 
-/* Globální vyhledávání osob */
-#global-search {
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success) 0%, #38a169 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger) 0%, #e53e3e 100%);
+  color: white;
+}
+
+/* Toolbar */
+.toolbar-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 10px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle::after {
+  content: ' ▾';
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 10;
+  min-width: 120px;
+}
+
+.dropdown.open .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
   width: 100%;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid #cbd5e1;
-  font-size: 0.8rem;
-  outline: none;
-}
-.search-result {
-  font-size: 0.8rem;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
   cursor: pointer;
-}
-.search-result:hover {
-  background: #e5e7eb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  transition: background 0.2s;
 }
 
-/* Editor sedadla – overlay */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15,23,42,0.45);
+.dropdown-item:hover {
+  background: var(--gray-100);
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  font-size: 1.2rem;
 }
-.overlay.hidden {
-  display: none;
+
+/* Filter Panel */
+.filter-panel {
+  margin-bottom: 15px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
 }
-.seat-modal {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 16px 18px 14px;
-  width: min(340px, 92vw);
-  box-shadow: 0 20px 50px rgba(15,23,42,0.45);
+
+.filter-panel.collapsed {
+  max-height: 0;
 }
-.seat-modal h3 {
-  margin: 0 0 8px;
-  font-size: 1rem;
+
+.filter-panel:not(.collapsed) {
+  max-height: 300px;
 }
-.seat-modal label {
-  display: block;
-  font-size: 0.8rem;
-  margin-bottom: 4px;
-  color: #4b5563;
-}
-.seat-modal input[type="text"] {
-  width: 100%;
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  font-size: 0.85rem;
-  outline: none;
-}
-.seat-modal input[type="text"]:focus {
-  border-color: #4f46e5;
-}
-.toggle-group {
+
+.filter-row {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
-.toggle-group button {
+
+.filter-row label {
+  min-width: 80px;
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+}
+
+.filter-row input, .filter-row select {
   flex: 1;
-  padding: 6px 8px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  padding: 8px 12px;
+  border: 2px solid var(--gray-200);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.filter-row input:focus, .filter-row select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+/* Standing List */
+.select-checkbox {
+  margin-right: 8px;
+}
+
+.payment-badge {
+  padding: 6px 10px;
+  border-radius: 6px;
   font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-}
-.toggle-group button.active-paid {
-  background: #bbf7d0;
-  border-color: #16a34a;
-  color: #14532d;
-}
-.toggle-group button.active-unpaid {
-  background: #fecaca;
-  border-color: #dc2626;
-  color: #7f1d1d;
-}
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 14px;
-}
-.modal-actions button {
-  border-radius: 999px;
+  transition: all 0.2s;
   border: none;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  cursor: pointer;
+  white-space: nowrap;
 }
-#seat-editor-cancel {
-  background: #e5e7eb;
-}
-#seat-editor-save {
-  background: #4f46e5;
+
+.payment-badge.paid {
+  background: var(--success);
   color: white;
 }
 
-/* drobný copyright */
-.copyright {
-  position: fixed;  
-  bottom: 10px; 
-  right: 10px;
-  font-size: 0.7rem;
-  color: #555;
-  font-family: "Poppins", sans-serif;
-  pointer-events: none;
+.payment-badge.unpaid {
+  background: var(--danger);
+  color: white;
 }
 
-/* Mobilní úpravy */
-@media (max-width: 900px) {
-  body {
+.payment-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Search */
+.search-box {
+  margin-bottom: 15px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+#global-results {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.search-result {
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.search-result:hover {
+  background: var(--gray-100);
+  transform: translateX(4px);
+}
+
+.search-result strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.search-result small {
+  display: block;
+  color: var(--gray-600);
+  font-size: 0.8rem;
+}
+
+/* Standing guests */
+.standing-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.standing-controls input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+#standing-summary {
+  font-size: 0.95rem;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+  font-weight: 600;
+  padding: 10px;
+  background: var(--gray-50);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.person {
+  background: var(--gray-50);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--gray-200);
+  transition: all 0.2s;
+}
+
+.person:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(102,126,234,0.1);
+}
+
+.person input[type="text"] {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.person button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.person .paid-btn {
+  background: var(--success);
+  color: white;
+}
+
+.person .unpaid-btn {
+  background: var(--danger);
+  color: white;
+}
+
+.person .delete-btn {
+  background: var(--gray-400);
+  color: white;
+  font-size: 1.2rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.person .price-tag {
+  background: white;
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 2px solid var(--primary);
+}
+
+/* Tables */
+.table {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(100, 120, 255, 0.08);
+  position: relative;
+  text-align: center;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.table:hover {
+  transform: scale(1.04);
+}
+
+.table-number {
+   position: absolute;
+   top: 6px;
+   left: 8px;
+   font-size: 0.65rem;
+   font-weight: 700;
+   color: white;
+   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+   padding: 2px 4px;
+   border-radius: 6px;
+   min-width: 18px;
+}
+
+
+
+.table-price {
+   position: absolute;
+   top: 6px;
+   right: 8px;
+   font-size: 0.6rem;
+   font-weight: 700;
+   color: var(--primary);
+   background: var(--gray-50);
+   padding: 1px 4px;
+   border-radius: 5px;
+   border: 1px solid var(--primary);
+}
+
+.table-price-paid {
+   background: var(--success);
+   color: white;
+   border: none;
+   font-weight: 800;
+}
+
+.table-price-large {
+   font-size: 0.65rem;
+   font-weight: 800;
+   top: 6px;
+   bottom: auto;
+   left: 40px;
+   right: auto;
+   padding: 1px 4px;
+}
+
+.table-price-small {
+   font-size: 0.65rem;
+   padding: 2px 6px;
+}
+
+.table-graduate {
+   position: absolute;
+   bottom: 6px;
+   left: 8px;
+   font-size: 0.65rem;
+   font-weight: 600;
+   color: var(--gray-600);
+   background: var(--gray-100);
+   padding: 3px 6px;
+   border-radius: 5px;
+   max-width: 60px;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.table-graduate-large {
+   max-width: 80px;
+}
+
+.table-graduate-large {
+    font-size: 0.65rem;
+    font-weight: 600;
+    background: var(--gray-100);
+    max-width: 80px;
+}
+
+/* Table levels */
+.level-low {
+  border: 2px solid #4a90e2;
+}
+
+.level-mid {
+  border: 2px solid #50c878;
+}
+
+.level-high {
+  border: 2px solid #ff6b6b;
+}
+
+/* Table sizes - increased for better visibility */
+.table.small {
+   width: 90px;
+   height: 90px;
+   min-width: 90px;
+   min-height: 90px;
+}
+
+.table.medium-horizontal {
+   width: 180px;
+   height: 100px;
+   min-width: 180px;
+   min-height: 100px;
+}
+
+.table.medium-vertical {
+   width: 100px;
+   height: 180px;
+   min-width: 100px;
+   min-height: 180px;
+}
+
+/* Chairs */
+.chairs {
+  display: grid;
+  gap: 5px;
+  justify-content: center;
+  align-content: center;
+}
+
+.table.small .chairs {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.table.medium-horizontal .chairs {
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.table.medium-vertical .chairs {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+}
+
+.chair {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.chair:hover {
+  transform: scale(1.4);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.chair-empty {
+  background: var(--gray-300);
+  border-color: var(--gray-400);
+}
+
+.chair-paid {
+  background: var(--success);
+  border-color: #38a169;
+}
+
+.chair-unpaid {
+  background: var(--danger);
+  border-color: #e53e3e;
+}
+
+.chair.highlight {
+   animation: pulse 1.5s ease-in-out;
+}
+
+.chair.selected {
+   border-color: var(--warning);
+   background: var(--warning);
+   box-shadow: 0 0 0 2px rgba(237, 137, 54, 0.5);
+}
+
+.chair.drag-over {
+   border-color: var(--success);
+   background: rgba(72, 187, 120, 0.3);
+   box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 rgba(102,126,234,0.7); 
+  }
+  50% { 
+    transform: scale(1.6); 
+    box-shadow: 0 0 0 10px rgba(102,126,234,0); 
+  }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 35px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+  animation: modalSlide 0.3s ease-out;
+}
+
+@keyframes modalSlide {
+  from { 
+    transform: translateY(-50px) scale(0.95); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0) scale(1); 
+    opacity: 1; 
+  }
+}
+
+.modal h3 {
+  margin: 0 0 25px 0;
+  color: var(--gray-900);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.modal-input-group {
+  margin-bottom: 20px;
+}
+
+.modal-input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+}
+
+.modal-input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.modal-input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+.modal-toggle-group {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-toggle-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border: 2px solid var(--gray-300);
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.modal-toggle-btn:hover {
+  border-color: var(--gray-400);
+}
+
+.modal-toggle-btn.active {
+  border-color: transparent;
+  color: white;
+  transform: scale(1.02);
+}
+
+.modal-toggle-btn#modal-unpaid.active {
+  background: var(--danger);
+}
+
+.modal-toggle-btn#modal-paid.active {
+  background: var(--success);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+/* Guest details */
+.guest-details {
+  background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+  border-radius: 10px;
+  padding: 18px;
+  margin-top: 20px;
+  border-left: 4px solid var(--primary);
+}
+
+.guest-details h3 {
+  margin: 0 0 12px 0;
+  color: var(--gray-900);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.guest-detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.guest-detail-item:last-child {
+  border-bottom: none;
+}
+
+.guest-detail-label {
+  color: var(--gray-600);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.guest-detail-value {
+  color: var(--gray-900);
+  font-weight: 700;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+/* Guest View */
+.guest-view-header {
+   text-align: center;
+   background: white;
+   border-radius: 16px;
+   padding: 40px 20px;
+   margin-bottom: 25px;
+   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.guest-view-header h1 {
+   font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+   margin-bottom: 10px;
+}
+
+.guest-view-header p {
+   font-size: 1.1rem;
+   color: var(--gray-600);
+   margin-bottom: 0;
+}
+
+.guest-view-search {
+  max-width: 600px;
+  margin: 0 auto 30px;
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.guest-view-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.guest-stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.guest-stat-card .value {
+  font-size: 2rem;
+  font-weight: 800;
+   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+   -webkit-background-clip: text;
+   background-clip: text;
+   -webkit-text-fill-color: transparent;
+}
+
+.guest-stat-card .label {
+   margin-top: 5px;
+   color: var(--gray-600);
+   font-weight: 600;
+   font-size: 0.75rem;
+   text-transform: uppercase;
+}
+
+/* Guest search results */
+#guest-search-results .search-result {
+   padding: 10px 14px;
+   background: var(--gray-50);
+   border-left: 4px solid var(--primary);
+   border-radius: 6px;
+   margin-bottom: 8px;
+   cursor: pointer;
+   transition: all 0.2s;
+   font-size: 0.9rem;
+}
+
+#guest-search-results .search-result:hover {
+   background: var(--gray-100);
+   transform: translateX(4px);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* Loading Overlay */
+.loading-overlay {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background: rgba(0, 0, 0, 0.5);
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   z-index: 3000;
+   backdrop-filter: blur(4px);
+}
+
+.loading-spinner {
+   width: 50px;
+   height: 50px;
+   border: 4px solid var(--gray-300);
+   border-top: 4px solid var(--primary);
+   border-radius: 50%;
+   animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+   0% { transform: rotate(0deg); }
+   100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+   margin-top: 10px;
+   color: white;
+   font-weight: 600;
+}
+
+/* Mobile Sidebar Toggle */
+.sidebar-toggle {
+   display: none;
+   position: fixed;
+   top: 20px;
+   left: 20px;
+   z-index: 1001;
+   background: white;
+   border: none;
+   border-radius: 8px;
+   padding: 10px;
+   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+   cursor: pointer;
+}
+
+.sidebar-toggle span {
+   display: block;
+   width: 20px;
+   height: 2px;
+   background: var(--gray-700);
+   margin: 3px 0;
+   transition: 0.3s;
+}
+
+.sidebar.collapsed {
+   display: none;
+}
+
+.sidebar-backdrop {
+   display: none;
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background: rgba(0, 0, 0, 0.5);
+   z-index: 999;
+}
+
+.sidebar-backdrop.active {
+   display: block;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .container {
     flex-direction: column;
-    padding: 12px;
-    gap: 16px;
   }
-  .layout, .sidebar {
-    margin-top: 70px;
+  
+  .sidebar {
+    max-height: none;
+    position: relative;
   }
-  .layout {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    padding: 20px 12px 16px;
-  }
-  .table.small { width: 80px; height: 80px; }
-  .table.medium-horizontal { width: 160px; height: 90px; }
-  .table.medium-vertical { width: 90px; height: 160px; }
-  .chair {
-    width: 18px;
-    height: 18px;
-  }
+}
+
+@media (max-width: 1024px) {
+   .container {
+      flex-direction: column;
+      gap: 20px;
+   }
+
+   .sidebar {
+      max-height: 400px;
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+      height: auto;
+      z-index: auto;
+   }
+
+   .layout-wrapper {
+      margin-top: 20px;
+   }
+
+   .stats-bar {
+      flex-wrap: wrap;
+      justify-content: center;
+   }
+
+   .stat-item {
+      flex: 1 1 150px;
+      min-width: 120px;
+   }
+}
+
+@media (max-width: 768px) {
+   body {
+      padding: 10px;
+   }
+
+   .sidebar-toggle {
+      display: block;
+   }
+
+   .sidebar {
+      position: fixed;
+      top: 0;
+      left: -320px;
+      width: 300px;
+      height: 100vh;
+      z-index: 1000;
+      transition: left 0.3s;
+      border-radius: 0;
+      overflow-y: auto;
+      padding: 20px;
+   }
+
+   .sidebar:not(.collapsed) {
+      left: 0;
+   }
+
+   .stats-bar {
+      padding: 15px;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+   }
+
+   .stat-item {
+      min-width: 80px;
+      padding: 8px 12px;
+      flex: 1 1 120px;
+   }
+
+   .stat-value {
+      font-size: 1.4rem;
+   }
+
+   .stat-label {
+      font-size: 0.6rem;
+   }
+
+   .view-toggle {
+      top: 10px;
+      right: 10px;
+      padding: 6px;
+      z-index: 1010;
+      background: rgba(255, 255, 255, 0.9);
+   }
+
+   .view-toggle button {
+      padding: 6px 10px;
+      font-size: 0.7rem;
+   }
+
+   .container {
+      flex-direction: column;
+      gap: 10px;
+   }
+
+   .layout-wrapper {
+      order: 2;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+   }
+
+   .sidebar {
+      order: 1;
+   }
+
+   .layout {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+   }
+
+   .bottom-section {
+      margin-top: 20px;
+   }
+
+   .bottom-row {
+      flex-direction: column;
+      gap: 10px;
+   }
+
+   .table {
+      width: 100%;
+      height: auto;
+      min-height: 100px;
+      padding: 8px;
+   }
+
+   .table.small {
+      width: 100%;
+      height: 100px;
+   }
+
+   .table.medium-horizontal {
+      width: 100%;
+      height: 120px;
+   }
+
+   .table.medium-vertical {
+      width: 100%;
+      height: 180px;
+   }
+
+   .chairs {
+      grid-template-columns: repeat(auto-fit, minmax(14px, 1fr));
+      gap: 3px;
+   }
+
+   .chair {
+      width: 14px;
+      height: 14px;
+   }
+
+   .modal {
+      width: 95%;
+      max-width: 400px;
+      padding: 25px;
+   }
+
+   .modal-input-group input {
+      font-size: 1rem;
+   }
+
+   .guest-view-header h1 {
+      font-size: 1.8rem;
+   }
+
+   .guest-view-search {
+      padding: 20px;
+   }
+}
+
+@media (max-width: 480px) {
+   .layout {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+   }
+
+   .bottom-row {
+      gap: 8px;
+   }
+
+   .table {
+      min-height: 80px;
+      padding: 5px;
+   }
+
+   .table.small {
+      height: 80px;
+   }
+
+   .table.medium-horizontal {
+      height: 90px;
+   }
+
+   .table.medium-vertical {
+      height: 150px;
+   }
+
+   .chair {
+      width: 12px;
+      height: 12px;
+   }
+
+   .chairs {
+      grid-template-columns: repeat(auto-fit, minmax(12px, 1fr));
+      gap: 2px;
+   }
+
+   .stats-bar {
+      padding: 10px;
+      gap: 8px;
+   }
+
+   .stat-item {
+      min-width: 70px;
+      padding: 6px 8px;
+      flex: 1 1 100px;
+   }
+
+   .stat-value {
+      font-size: 1.2rem;
+   }
+
+   .stat-label {
+      font-size: 0.5rem;
+   }
+
+   .modal {
+      width: 98%;
+      padding: 20px;
+   }
+
+   .modal h3 {
+      font-size: 1.4rem;
+   }
+
+   .guest-view-header h1 {
+      font-size: 1.5rem;
+   }
+
+   .guest-view-header p {
+      font-size: 0.9rem;
+   }
 }
 </style>
 </head>
 <body>
 
-<div id="stats" class="stats-bar">
-  <div class="stats-item">
-    <div class="stats-label">Sezení</div>
-    <div class="stats-value" id="stats-seating">0 / 220</div>
-  </div>
-  <div class="stats-item">
-    <div class="stats-label">Stání</div>
-    <div class="stats-value" id="stats-standing">0 / 30</div>
-  </div>
-  <div class="stats-item">
-    <div class="stats-label">Celkem</div>
-    <div class="stats-value" id="stats-total">0 / 250</div>
-  </div>
+<!-- Sidebar Backdrop -->
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" id="sidebar-toggle">
+   <span></span>
+   <span></span>
+   <span></span>
+</button>
+
+<!-- View Toggle -->
+<div class="view-toggle">
+   <button id="toggle-admin">Správce</button>
+   <button id="toggle-guest" class="active">Veřejný pohled</button>
 </div>
 
-<div class="layout">
-  <!-- Sloupec 1 -->
-  <div>
-    <div class="table small" data-seats="4"><span class="table-number">25</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">24</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">23</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">22</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">21</span></div>
-  </div>
-
-  <!-- Sloupec 2 -->
-  <div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">5</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">4</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">3</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">2</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">1</span></div>
-  </div>
-
-  <!-- Sloupec 3 = taneční parket -->
-  <div class="dancefloor"></div>
-
-  <!-- Sloupec 4 -->
-  <div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">6</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">7</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">8</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">9</span></div>
-    <div class="table medium-horizontal" data-seats="10"><span class="table-number">10</span></div>
-  </div>
-
-  <!-- Sloupec 5 -->
-  <div>
-    <div class="table small" data-seats="4"><span class="table-number">26</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">27</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">28</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">29</span></div>
-    <div class="table small" data-seats="4"><span class="table-number">30</span></div>
-  </div>
-
-  <!-- Dolní část: dvě řady stolů po osmi -->
-  <div class="bottom-section">
-    <div class="bottom-row">
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">15</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">14</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">13</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">12</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">11</span></div>
+<!-- Admin View -->
+<div id="admin-view">
+  <!-- Statistics -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value" id="stat-seats">0</div>
+      <div class="stat-label">Místa u stolů</div>
     </div>
-    <div class="bottom-row">
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">16</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">17</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">18</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">19</span></div>
-      <div class="table medium-vertical" data-seats="8"><span class="table-number">20</span></div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-standing">0</div>
+      <div class="stat-label">Stání</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">Celkem</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-revenue">0 Kč</div>
+      <div class="stat-label">Tržby</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-unpaid">0 Kč</div>
+      <div class="stat-label">Nezaplaceno</div>
     </div>
   </div>
+
+  <div class="container">
+    <!-- Layout -->
+    <div class="layout-wrapper">
+      <div class="layout" id="layout"></div>
+    </div>
+    
+    <!-- Sidebar -->
+     <div class="sidebar">
+        <div class="toolbar-groups">
+          <div class="toolbar-group">
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" id="btn-export">Export ▾</button>
+              <div class="dropdown-menu">
+                <button class="dropdown-item" id="btn-report-csv">CSV Report</button>
+                <button class="dropdown-item" id="btn-report-pdf">PDF Report</button>
+              </div>
+            </div>
+          </div>
+          <div class="toolbar-group">
+            <button class="btn btn-primary" id="btn-import">Import</button>
+            <button class="btn btn-secondary" id="btn-bulk-mode">Hromadné úpravy</button>
+          </div>
+          <div class="toolbar-group">
+            <button class="btn btn-secondary icon-btn" id="btn-undo" disabled title="Zpět">↶</button>
+            <button class="btn btn-secondary icon-btn" id="btn-redo" disabled title="Vpřed">↷</button>
+          </div>
+        </div>
+      <input type="file" id="file-import" accept=".json" style="display: none;">
+      
+       <h2>Vyhledávání</h2>
+        <div class="search-box">
+          <input type="text" id="global-search" placeholder="Zadejte jméno...">
+        </div>
+        <button class="btn btn-secondary" id="toggle-filters">Filtrovat ▼</button>
+        <div id="search-filters" class="filter-panel collapsed">
+          <div class="filter-row">
+            <label for="filter-graduate">Maturant:</label>
+            <select id="filter-graduate">
+               <option value="">Všichni maturanti</option>
+            </select>
+          </div>
+          <div class="filter-row">
+            <label for="filter-payment">Platba:</label>
+            <select id="filter-payment">
+               <option value="">Všechny platby</option>
+               <option value="paid">Zaplaceno</option>
+               <option value="unpaid">Nezaplaceno</option>
+            </select>
+          </div>
+          <div class="filter-row">
+            <label for="filter-table-min">Stůl od:</label>
+            <input type="number" id="filter-table-min" min="1" max="30">
+          </div>
+          <div class="filter-row">
+            <label for="filter-table-max">Stůl do:</label>
+            <input type="number" id="filter-table-max" min="1" max="30">
+          </div>
+        </div>
+      <div id="global-results"></div>
+      
+      <div class="guest-details" id="selected-guest-details" style="display: none;">
+        <h3>Detail hosta</h3>
+        <div id="guest-details-content"></div>
+      </div>
+      
+       <h2>Stání (30 míst)</h2>
+       <div id="standing-summary">
+         <div>Obsazeno: <span id="standing-count">0</span> / 30</div>
+         <div class="progress-bar">
+           <div class="progress-fill" id="standing-progress"></div>
+         </div>
+       </div>
+      <div class="standing-controls">
+        <input type="text" id="standing-search" placeholder="Filtrovat...">
+        <button class="btn btn-success" id="standing-add">+ Přidat</button>
+      </div>
+       <div id="standing-list"></div>
+
+       <!-- Bulk Operations -->
+       <div id="bulk-controls" style="display: none;">
+         <h2>Hromadné úpravy</h2>
+         <p>Vyberte místa kliknutím (modré = vybrané), pak použijte tlačítka níže.</p>
+         <div class="config-buttons">
+            <button class="btn btn-success" id="btn-bulk-assign">Přiřadit vybraným</button>
+            <button class="btn btn-danger" id="btn-bulk-clear">Vymazat vybrané</button>
+            <button class="btn btn-secondary" id="btn-bulk-cancel">Zrušit</button>
+         </div>
+       </div>
+
+       <h2>Analytika</h2>
+       <div id="analytics-display">
+         <p>Úprav: <span id="analytics-edits">0</span></p>
+         <p>Vyhledávání: <span id="analytics-searches">0</span></p>
+         <p>Exportů: <span id="analytics-exports">0</span></p>
+         <p>Poslední aktivita: <span id="analytics-last">Nikdy</span></p>
+       </div>
+     </div>
+   </div>
 </div>
 
-<div class="sidebar">
-  <h2>Hosté se stáním</h2>
-  <div class="standing-controls">
-    <input id="standing-search" type="search" placeholder="Hledat ve stání…">
-    <button id="standing-add" type="button">+ Přidat</button>
+<!-- Guest View -->
+<div id="guest-view" class="active">
+  <div class="guest-view-header">
+    <h1>Maturitní ples 2025</h1>
+    <p>Najděte své místo</p>
   </div>
-  <div id="standing-summary"></div>
-  <div id="standing-list"></div>
+  
+   <div class="guest-view-search">
+     <h2 style="margin-bottom: 15px;">Najít mé místo</h2>
+     <p style="margin-bottom: 20px; color: var(--gray-600);">Zadejte své jméno a najděte, kde sedíte nebo stojíte.</p>
+     <div class="search-box">
+       <input type="text" id="guest-search" placeholder="Vaše jméno...">
+     </div>
+     <div id="guest-search-results"></div>
+   </div>
+  
+   <div class="guest-view-stats" id="guest-stats"></div>
 
-  <hr>
-  <h3>Vyhledat osobu (sezení + stání)</h3>
-  <input id="global-search" type="search" placeholder="Zadej jméno…">
-  <div id="global-results"></div>
+   <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+     <h3 style="margin-bottom: 10px;">Legenda</h3>
+     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+       <div style="display: flex; align-items: center; gap: 5px;">
+         <div style="width: 16px; height: 16px; background: var(--success); border-radius: 4px;"></div>
+         <span>Zaplaceno</span>
+       </div>
+       <div style="display: flex; align-items: center; gap: 5px;">
+         <div style="width: 16px; height: 16px; background: var(--danger); border-radius: 4px;"></div>
+         <span>Nezaplaceno</span>
+       </div>
+       <div style="display: flex; align-items: center; gap: 5px;">
+         <div style="width: 16px; height: 16px; background: var(--gray-300); border-radius: 4px;"></div>
+         <span>Volné</span>
+       </div>
+     </div>
+   </div>
+
+   <div class="layout-wrapper">
+     <div class="layout" id="guest-layout"></div>
+   </div>
+
+    <footer style="text-align: center; margin-top: 30px; padding: 20px; font-size: 0.8rem; color: var(--gray-500); background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+      <button onclick="enterAdmin()" style="color: var(--gray-500); background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 5px 10px; cursor: pointer;">Admin</button>
+    </footer>
+ </div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay" style="display: none;">
+   <div class="loading-spinner"></div>
+   <div class="loading-text">Načítání...</div>
 </div>
 
-<!-- Editor sedadla -->
-<div id="seat-editor-overlay" class="overlay hidden">
-  <div class="seat-modal" role="dialog" aria-modal="true">
-    <h3>Stůl <span id="seat-editor-table"></span> – místo <span id="seat-editor-seat"></span></h3>
-    <label for="seat-editor-name">Jméno</label>
-    <input type="text" id="seat-editor-name" autocomplete="off">
-    <div class="toggle-group">
-      <button type="button" id="seat-editor-unpaid">❌ Nezaplaceno</button>
-      <button type="button" id="seat-editor-paid">✅ Zaplaceno</button>
+<!-- Bulk Assign Modal -->
+<div class="modal-overlay" id="bulk-assign-overlay">
+   <div class="modal">
+      <h3>Hromadné přiřazení</h3>
+
+      <div class="modal-input-group">
+         <label for="bulk-name">Jméno hosta</label>
+         <input type="text" id="bulk-name" placeholder="Zadejte jméno...">
+      </div>
+
+      <div class="modal-input-group">
+         <label for="bulk-graduate">Maturant</label>
+         <input type="text" id="bulk-graduate" placeholder="Např. Jan Novák...">
+      </div>
+
+      <div class="modal-toggle-group">
+         <button class="modal-toggle-btn" id="bulk-unpaid">Nezaplaceno</button>
+         <button class="modal-toggle-btn" id="bulk-paid">Zaplaceno</button>
+      </div>
+
+      <div class="modal-actions">
+         <button class="btn btn-secondary" id="bulk-assign-cancel">Zrušit</button>
+         <button class="btn btn-primary" id="bulk-assign-save">Přiřadit</button>
+      </div>
+   </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="seat-editor-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Editovat místo</h3>
+    
+    <div class="modal-input-group">
+      <label for="modal-name">Jméno hosta</label>
+      <input type="text" id="modal-name" placeholder="Zadejte jméno...">
     </div>
+    
+    <div class="modal-input-group">
+      <label for="modal-graduate">Maturant</label>
+      <input type="text" id="modal-graduate" placeholder="Např. Jan Novák...">
+    </div>
+    
+    <div class="modal-toggle-group">
+      <button class="modal-toggle-btn" id="modal-unpaid">Nezaplaceno</button>
+      <button class="modal-toggle-btn" id="modal-paid">Zaplaceno</button>
+    </div>
+    
     <div class="modal-actions">
-      <button type="button" id="seat-editor-cancel">Zrušit</button>
-      <button type="button" id="seat-editor-save">Uložit</button>
+      <button class="btn btn-secondary" id="modal-cancel">Zrušit</button>
+      <button class="btn btn-danger" id="modal-remove">Odebrat</button>
+      <button class="btn btn-primary" id="modal-save">Uložit</button>
     </div>
   </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const STORAGE_KEY = "ples-planek-state-v1";
-  const STANDING_CAPACITY = 30;
+const PRICE_SEAT = 250;
+const PRICE_STANDING = 220;
+const ADMIN_HASH = 'VXphc25lVGFqbmVIZXNsaWNrbzIwMjUh';
 
-  /************ PŮVODNÍ DATA (zůstávají stejné) ************/
-  const seatData = [/* --- sem patří celý původní blok seatData z tvého souboru --- */];
+let currentView = 'guest';
+let currentEditingChair = null;
+let bulkMode = false;
+let selectedChairs = new Set();
+let history = [];
+let historyIndex = -1;
+const MAX_HISTORY = 10;
+let analytics = { edits: 0, searches: 0, exports: 0, lastActivity: null };
 
-  /* kvůli délce odpovědi jsem ho teď nekrátil – nech tam přesně ten, co už v souboru máš.
-     Pokud tu odpověď čteš v editoru, jednoduše:
-     - najdi ve starém HTML celé "const seatData = [ ... ]"
-     - zkopíruj ten blok a vlož ho sem místo tohoto komentáře
-  */
+// Utility functions
+function showLoading() {
+   document.getElementById('loading-overlay').style.display = 'flex';
+}
 
-  const standingInitial = [
-    { id: 1, name: "Hana Kovaříkova", paid: true },
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+ }
+
+function enterAdmin() {
+    const password = prompt('Zadejte heslo pro správce:');
+    if (btoa(password) === ADMIN_HASH) {
+        currentView = 'admin';
+        document.getElementById('admin-view').classList.add('active');
+        document.getElementById('guest-view').classList.remove('active');
+        document.getElementById('toggle-admin').classList.add('active');
+        document.getElementById('toggle-guest').classList.remove('active');
+    renderTables();
+    renderStandingList();
+    updateStats();
+    updateStandingSummary();
+    updateSearchFilters();
+    renderGuestView();
+        // Update URL
+        const url = new URL(window.location);
+        url.searchParams.set('admin', 'true');
+        window.history.replaceState({}, '', url);
+    } else {
+        alert('Nesprávné heslo.');
+    }
+ }
+
+// Pre-loaded seat data - converted from `planekhngrszn 1.html`
+const preloadedSeats = {
+  "1": [
+    { name: "Dan Huml", paid: true, graduate: "všichni" },
+    { name: "Dagmar Hloušková", paid: false, graduate: "všichni" },
+    { name: "Dáša manžel", paid: false, graduate: "všichni" },
+    { name: "Suchý", paid: true, graduate: "všichni" },
+    { name: "Knutsonová", paid: false, graduate: "všichni" },
+    { name: "Jáklová?", paid: false, graduate: "všichni" },
+    { name: "Pokorná?", paid: false, graduate: "všichni" },
+    { name: "", paid: false, graduate: "všichni" },
+    { name: "", paid: false, graduate: "všichni" },
+    { name: "", paid: false, graduate: "všichni" }
+  ],
+  "2": [
+    { name: "Jaroslav Dvořák", paid: true, graduate: "všichni" },
+    { name: "Jiří Macek", paid: true, graduate: "všichni" },
+    { name: "slečna Věra", paid: true, graduate: "všichni" },
+    { name: "Válek", paid: true, graduate: "všichni" },
+    { name: "Válek manželka", paid: true, graduate: "všichni" },
+    { name: "Dvořák Vít", paid: true, graduate: "všichni" },
+    { name: "Macek doprovod", paid: true, graduate: "všichni" },
+    { name: "Věra doprovod", paid: true, graduate: "všichni" },
+    { name: "Dvořák V. doprovod", paid: true, graduate: "všichni" },
+    { name: "DJ doprovod", paid: false, graduate: "všichni" }
+  ],
+  "3": [
+    { name: "Ilona Hušková", paid: false, graduate: "Ondra Hušek" },
+    { name: "Michal Hušek", paid: false, graduate: "Ondra Hušek" },
+    { name: "Eliška Hušková", paid: false, graduate: "Ondra Hušek" },
+    { name: "Zdeněk Hejzlar", paid: false, graduate: "Ondra Hušek" },
+    { name: "Anežka Mládková", paid: false, graduate: "Ondra Hušek" },
+    { name: "Marie Malá", paid: false, graduate: "Ondra Hušek" },
+    { name: "Josef Malý", paid: false, graduate: "Ondra Hušek" },
+    { name: "Marie Hyšplerová", paid: false, graduate: "Ondra Hušek" },
+    { name: "Petr Kocmánek", paid: false, graduate: "Ondra Hušek" },
+    { name: "Lenka Kocmánková", paid: false, graduate: "Ondra Hušek" }
+  ],
+  "4": [
+    { name: "Jitka Hradská", paid: true, graduate: "Tereza Hradská" },
+    { name: "Kateřina Hradská", paid: true, graduate: "Tereza Hradská" },
+    { name: "Jiří Novotný", paid: true, graduate: "Michaela Novotná" },
+    { name: "Alexandra Jandová", paid: true, graduate: "Michaela Novotná" },
+    { name: "Lenka Poláková", paid: true, graduate: "Matyáš Polák" },
+    { name: "Roman Hradský", paid: true, graduate: "Tereza Hradská" },
+    { name: "Vlasta Hradská", paid: true, graduate: "Tereza Hradská" },
+    { name: "Helena Bártová", paid: true, graduate: "Michaela Novotná" },
+    { name: "Matyáš Janda", paid: true, graduate: "Michaela Novotná" },
+    { name: "Libor", paid: true, graduate: "Matyáš Polák" }
+  ],
+  "5": [
+    { name: "Pavlínka Suková", paid: false, graduate: "Matouš Suk" },
+    { name: "Honzík Suk", paid: false, graduate: "Matouš Suk" },
+    { name: "Kája Suk", paid: false, graduate: "Matouš Suk" },
+    { name: "Vilík Suk", paid: false, graduate: "Matouš Suk" },
+    { name: "Babička Kroulíková", paid: false, graduate: "Matouš Suk" },
+    { name: "Báka Suková", paid: false, graduate: "Matouš Suk" },
+    { name: "Julie Hylmarová", paid: false, graduate: "Matouš Suk" },
+    { name: "Teta Hylmarová", paid: false, graduate: "Matouš Suk" },
+    { name: "Děda Suk", paid: false, graduate: "Matouš Suk" },
+    { name: "Denča Zvěřinová", paid: false, graduate: "Matouš Suk" }
+  ],
+  "6": [
+    { name: "Karel Bříza", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Pavel Skalický", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Jindřich Skopový", paid: true, graduate: "Tomáš Bříza" },
+    { name: "David Hrdina", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Eliška Břízová", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Jana Břízová", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Eva Břízová", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Leona Skalická", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Kateřina Skalická", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Jáchym Kristan", paid: true, graduate: "Tomáš Bříza" }
+  ],
+   "7": [
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" },
+     { name: "", paid: false, graduate: "Antonín Králík" }
+   ],
+   "8": [
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: true, graduate: "Radek Horčičák" },
+     { name: "", paid: false, graduate: "Radek Horčičák" },
+     { name: "", paid: false, graduate: "Radek Horčičák" },
+     { name: "", paid: false, graduate: "Radek Horčičák" }
+   ],
+  "9": [
+    { name: "Lenka Kněžourová", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Jirka Martinů", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Jana Korvasová", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Děda Korvas", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Tomáš Korvas", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Eliška", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Tomáš Vanlc", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Katka Exnarová", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Tereza Zemková", paid: false, graduate: "Dorothea Kněžourová" },
+    { name: "Bára", paid: false, graduate: "Dorothea Kněžourová" }
+  ],
+   "10": [
+    { name: "Libor Polák", paid: true, graduate: "Matyáš Polák" },
+    { name: "", paid: false, graduate: "Pepa Efler" },
+     { name: "", paid: false, graduate: "Pepa Efler" },
+     { name: "", paid: false, graduate: "Pepa Efler" },
+     { name: "", paid: true, graduate: "Pepa Efler" },
+     { name: "Renata", paid: true, graduate: "Matyáš Polák" },
+     { name: "", paid: false, graduate: "Pepa Efler" },
+     { name: "", paid: false, graduate: "Pepa Efler" },
+     { name: "", paid: false, graduate: "Pepa Efler" },
+     { name: "", paid: true, graduate: "Pepa Efler" }
+   ],
+  "11": [
+    { name: "", paid: true, graduate: "Dan Martinů" },
+    { name: "", paid: true, graduate: "Dan Martinů" },
+    { name: "", paid: true, graduate: "Dan Martinů" },
+    { name: "", paid: true, graduate: "Dan Martinů" },
+    { name: "", paid: false, graduate: "Dan Martinů" },
+    { name: "", paid: false, graduate: "Dan Martinů" },
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" }
+  ],
+  "12": [
+    { name: "Martina Beranová", paid: true, graduate: "Natka Beranová" },
+    { name: "Michal Beran", paid: true, graduate: "Natka Beranová" },
+    { name: "Filip Beran", paid: true, graduate: "Natka Beranová" },
+    { name: "Lenka Třmínková", paid: true, graduate: "Natka Beranová" },
+    { name: "Josef Třmínek", paid: true, graduate: "Natka Beranová" },
+    { name: "Lenka Hamannová", paid: true, graduate: "Natka Beranová" },
+    { name: "Blanka Beranová", paid: true, graduate: "Natka Beranová" },
+    { name: "", paid: false, graduate: "" }
+  ],
+  "13": [
+    { name: "Jana Jahelková", paid: true, graduate: "Martin Jahelka" },
+    { name: "Tereza Jahelková", paid: true, graduate: "Martin Jahelka" },
+    { name: "Martin Jahelka", paid: true, graduate: "Martin Jahelka" },
+    { name: "Vladimír Jahelka", paid: true, graduate: "Martin Jahelka" },
+    { name: "Bohumil Škop", paid: true, graduate: "Martin Jahelka" },
+    { name: "Dana Škopová", paid: true, graduate: "Martin Jahelka" },
+    { name: "Monika Bojkovská", paid: true, graduate: "Martin Jahelka" },
+    { name: "Jaruška", paid: true, graduate: "Martin Jahelka" }
+  ],
+  "14": [
+    { name: "Luboš Lasík", paid: true, graduate: "Lucie Lasíková" },
+    { name: "Vojtěch Kořínek", paid: true, graduate: "Lucie Lasíková" },
+    { name: "Radek Kovařík", paid: true, graduate: "Radek Kovařík" },
+    { name: "Pavel Šubrt", paid: true, graduate: "Radek Kovařík" },
+    { name: "Lucie Kovaříková", paid: true, graduate: "Radek Kovařík" },
+    { name: "Vlasta Kovaříková", paid: true, graduate: "Radek Kovařík" },
+    { name: "Eliška Kopalová", paid: true, graduate: "Lucie Lasíková" },
+    { name: "Eliška Hrazdírová", paid: true, graduate: "Lucie Lasíková" }
+  ],
+   "15": [
+     { name: "", paid: false, graduate: "Štefan Dombai" },
+     { name: "", paid: false, graduate: "Štefan Dombai" },
+     { name: "", paid: false, graduate: "Štefan Dombai" },
+     { name: "", paid: false, graduate: "Štefan Dombai" },
+     { name: "", paid: false, graduate: "Štefan Dombai" },
+     { name: "", paid: false, graduate: "Damián Roháček" },
+     { name: "", paid: false, graduate: "Damián Roháček" },
+     { name: "", paid: false, graduate: "Damián Roháček" }
+   ],
+   "16": [
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" },
+     { name: "", paid: false, graduate: "Matěj Jirásek" }
+   ],
+   "17": [
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: true, graduate: "Martin Kuchař" },
+     { name: "", paid: false, graduate: "" }
+   ],
+  "18": [
+    { name: "Barbora Hartychová", paid: true, graduate: "Dominik Hartych" },
+    { name: "Radek Hartych", paid: true, graduate: "Dominik Hartych" },
+    { name: "Eliška Hartychová", paid: true, graduate: "Dominik Hartych" },
+    { name: "Daniel Hartych", paid: true, graduate: "Dominik Hartych" },
+    { name: "Lukáš Hartych", paid: true, graduate: "Dominik Hartych" },
+    { name: "Sabina Vondráčková", paid: true, graduate: "Dominik Hartych" },
+    { name: "Tomáš Torák", paid: true, graduate: "Dominik Hartych" },
+    { name: "Tereza Rapáčová", paid: true, graduate: "Dominik Hartych" }
+  ],
+  "19": [
+    { name: "Barbora Klíbrová", paid: true, graduate: "Pepa Sokol" },
+    { name: "Matěj Sokol", paid: true, graduate: "Pepa Sokol" },
+    { name: "Monika", paid: true, graduate: "Pepa Sokol" },
+    { name: "Tonda", paid: true, graduate: "Pepa Sokol" },
+    { name: "Vojta", paid: true, graduate: "Pepa Sokol" },
+    { name: "Dana", paid: true, graduate: "Pepa Sokol" },
+    { name: "Lukáš", paid: true, graduate: "Pepa Sokol" },
+    { name: "Ondra", paid: true, graduate: "Pepa Sokol" }
+  ],
+  "20": [
+    { name: "Kamila Horušická", paid: false, graduate: "Lukáš Pozler" },
+    { name: "Jiří Horušický", paid: false, graduate: "Lukáš Pozler" },
+    { name: "Marek Pozler", paid: false, graduate: "Lukáš Pozler" },
+    { name: "Radana Ježová", paid: false, graduate: "Kuba Jež" },
+    { name: "Jan Jež", paid: false, graduate: "Kuba Jež" },
+    { name: "Pavlína Rudová", paid: false, graduate: "Lukáš Pozler" },
+    { name: "?", paid: false, graduate: "Lukáš Pozler" },
+    { name: "?", paid: false, graduate: "Lukáš Pozler" }
+  ],
+   "21": [
+     { name: "Magdaléna Čapková", paid: true, graduate: "Jan Čapka" },
+     { name: "Ivana Čapková", paid: true, graduate: "Jan Čapka" },
+     { name: "Jiří Čapka", paid: true, graduate: "Jan Čapka" },
+     { name: "", paid: false, graduate: "" }
+   ],
+   "22": [
+     { name: "", paid: false, graduate: "Dan Martinů" },
+     { name: "", paid: false, graduate: "Dan Martinů" },
+     { name: "", paid: false, graduate: "Štefan Dombai" },
+     { name: "", paid: false, graduate: "Štefan Dombai" }
+   ],
+  "23": [
+    { name: "", paid: true, graduate: "veřejnost od Macka" },
+    { name: "", paid: true, graduate: "veřejnost od Macka" },
+    { name: "", paid: true, graduate: "veřejnost od Macka" },
+    { name: "", paid: true, graduate: "veřejnost od Macka" }
+  ],
+   "24": [
+     { name: "", paid: false, graduate: "učitelé" },
+     { name: "", paid: false, graduate: "učitelé" },
+     { name: "", paid: false, graduate: "učitelé" },
+     { name: "", paid: false, graduate: "učitelé" }
+   ],
+  "25": [
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" }
+  ],
+  "26": [
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" },
+    { name: "", paid: false, graduate: "" }
+  ],
+   "27": [
+     { name: "", paid: true, graduate: "Pepa Sokol" },
+     { name: "", paid: true, graduate: "Pepa Sokol" },
+     { name: "", paid: true, graduate: "Pepa Sokol" },
+     { name: "", paid: true, graduate: "Pepa Sokol" }
+   ],
+   "28": [
+     { name: "", paid: true, graduate: "Pepa Sokol" },
+     { name: "", paid: true, graduate: "Pepa Sokol" },
+     { name: "", paid: true, graduate: "Pepa Sokol" },
+     { name: "", paid: true, graduate: "Pepa Sokol" }
+   ],
+   "29": [
+     { name: "", paid: false, graduate: "Pepa Sokol" },
+     { name: "", paid: false, graduate: "Pepa Sokol" },
+     { name: "", paid: false, graduate: "Pepa Sokol" },
+     { name: "", paid: false, graduate: "Pepa Sokol" }
+   ],
+  "30": [
+    { name: "Veronika Selicharová", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Antonín Skopový", paid: true, graduate: "Tomáš Bříza" },
+    { name: "Pavla Marie Tafilová", paid: true, graduate: "Tomáš Bříza" },
+    { name: "", paid: false, graduate: "" }
+  ]
+};
+
+// Normalize preloaded seats: where seat `name` is empty but `graduate` is present,
+// write the graduate's name into `name` (so it's visible) and mark as unpaid.
+Object.keys(preloadedSeats).forEach(tableNum => {
+  preloadedSeats[tableNum] = preloadedSeats[tableNum].map(seat => {
+    if ((!seat.name || !seat.name.toString().trim()) && seat.graduate && seat.graduate.toString().trim()) {
+      seat.name = seat.graduate.toString();
+      seat.paid = false;
+      // keep graduate field as-is (repeat)
+      seat.graduate = seat.graduate.toString();
+    }
+    return seat;
+  });
+});
+
+let state = {
+  tables: {},
+  standing: [
+    { id: 1, name: "Hana Kovaříková", paid: true },
     { id: 2, name: "Dardek Halbich", paid: false },
     { id: 3, name: "Eliška Odlová", paid: false },
     { id: 4, name: "Hanička Černá", paid: true },
@@ -618,425 +2008,1387 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: 9, name: "Jakub Burianek", paid: false },
     { id: 10, name: "Jiří Tázler", paid: false },
     { id: 11, name: "Dominik Křížek", paid: false },
-    { id: 12, name: "Hanča Ježkova", paid: false },
+    { id: 12, name: "Hanča Ježková", paid: false },
     { id: 13, name: "Ela Chocholáčová", paid: false },
     { id: 14, name: "Tomášek Jakubsk", paid: false },
     { id: 15, name: "Pavlína Švadláková", paid: false },
     { id: 16, name: "Libor Polák", paid: true }
-  ];
+  ],
+  nextStandingId: 17
+};
 
-  const seatMap = {};
-  seatData.forEach(s => {
-    seatMap[`${s.table}-${s.seat}`] = {
-      name: s.name || "",
-      paid: s.paid && s.paid.includes("✅"),
-      graduate: s.graduate || ""
-    };
-  });
-
-  let state = {
-    tables: {},
-    standing: []
-  };
-
-  function buildInitialState() {
-    const tables = {};
-    document.querySelectorAll(".table").forEach(tableEl => {
-      const tableNumber = tableEl.querySelector(".table-number").textContent.trim();
-      const seatsCount = parseInt(tableEl.dataset.seats || "0", 10) || 0;
-      const seats = {};
-      for (let i = 1; i <= seatsCount; i++) {
-        const key = `${tableNumber}-${i}`;
-        if (seatMap[key]) {
-          seats[i] = {
-            name: seatMap[key].name,
-            paid: !!seatMap[key].paid,
-            graduate: seatMap[key].graduate || ""
-          };
-        } else {
-          seats[i] = { name: "", paid: false, graduate: "" };
-        }
+// Initialize state
+function initState() {
+   try {
+      const saved = localStorage.getItem('ples-state-v3');
+      if (saved) {
+         state = JSON.parse(saved);
+         validateState();
+         saveHistory();
+         return;
       }
-      tables[tableNumber] = {
-        status: "free",
-        label: "",
-        seats
-      };
-    });
-    return {
-      tables,
-      standing: standingInitial.map(p => ({ ...p }))
-    };
-  }
+   } catch (e) {
+      console.error('Error loading state:', e);
+      alert('Chyba při načítání dat. Používám výchozí konfiguraci.');
+   }
 
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.tables && parsed.standing) {
-        state = parsed;
-      } else {
-        state = buildInitialState();
-      }
-    } catch {
-      state = buildInitialState();
-    }
-  } else {
-    state = buildInitialState();
-  }
-
-  const totalSeats = Array.from(document.querySelectorAll(".table")).reduce((sum, t) => {
-    return sum + (parseInt(t.dataset.seats || "0", 10) || 0);
-  }, 0);
-
-  const standingSearchInput = document.getElementById("standing-search");
-  const standingAddBtn = document.getElementById("standing-add");
-  const standingListEl = document.getElementById("standing-list");
-  const standingSummaryEl = document.getElementById("standing-summary");
-  const globalSearchInput = document.getElementById("global-search");
-  const globalResultsEl = document.getElementById("global-results");
-  const statsSeatingEl = document.getElementById("stats-seating");
-  const statsStandingEl = document.getElementById("stats-standing");
-  const statsTotalEl = document.getElementById("stats-total");
-
-  /* editor sedadel */
-  const seatOverlay = document.getElementById("seat-editor-overlay");
-  const seatNameInput = document.getElementById("seat-editor-name");
-  const seatTableSpan = document.getElementById("seat-editor-table");
-  const seatIndexSpan = document.getElementById("seat-editor-seat");
-  const seatBtnPaid = document.getElementById("seat-editor-paid");
-  const seatBtnUnpaid = document.getElementById("seat-editor-unpaid");
-  const seatBtnCancel = document.getElementById("seat-editor-cancel");
-  const seatBtnSave = document.getElementById("seat-editor-save");
-
-  let seatEditorContext = null;
-
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function nextTableStatus(status) {
-    if (status === "free") return "reserved";
-    if (status === "reserved") return "paid";
-    return "free";
-  }
-
-  function occupiedSeatsCount() {
-    let c = 0;
-    Object.values(state.tables).forEach(t => {
-      Object.values(t.seats).forEach(s => {
-        if (s.name && s.name.trim().length > 0) c++;
+   // Initialize from preloaded data
+   try {
+      Object.keys(preloadedSeats).forEach(tableNum => {
+         state.tables[tableNum] = {
+            status: 'free',
+            seats: preloadedSeats[tableNum]
+         };
       });
+      saveState();
+   } catch (e) {
+      console.error('Error initializing state:', e);
+   }
+
+   // Load analytics
+   try {
+      const savedAnalytics = localStorage.getItem('ples-analytics');
+      if (savedAnalytics) {
+         analytics = JSON.parse(savedAnalytics);
+      }
+   } catch (e) {
+      console.error('Error loading analytics:', e);
+   }
+}
+
+function validateState() {
+    if (!state.tables || typeof state.tables !== 'object') state.tables = {};
+    if (!state.standing || !Array.isArray(state.standing)) state.standing = [];
+    if (typeof state.nextStandingId !== 'number') state.nextStandingId = 17;
+
+    // Check if there are any occupied seats
+    let totalOccupied = 0;
+    Object.values(state.tables).forEach(table => {
+        if (table.seats) {
+            table.seats.forEach(seat => {
+                if (seat && seat.name && seat.name.trim()) totalOccupied++;
+            });
+        }
     });
-    return c;
+
+    // If no occupied seats, initialize from preloaded data
+    if (totalOccupied === 0) {
+        Object.keys(preloadedSeats).forEach(tableNum => {
+            state.tables[tableNum] = {
+                status: 'free',
+                seats: preloadedSeats[tableNum]
+            };
+        });
+    }
+
+    // If standing is empty, initialize with default
+    if (state.standing.length === 0) {
+        state.standing = [
+            { id: 1, name: "Hana Kovaříková", paid: true },
+            { id: 2, name: "Dardek Halbich", paid: false },
+            { id: 3, name: "Eliška Odlová", paid: false },
+            { id: 4, name: "Hanička Černá", paid: true },
+            { id: 5, name: "Anastázie Stránská", paid: true },
+            { id: 6, name: "Věrka Kalousková", paid: true },
+            { id: 7, name: "Ráďa Pilná", paid: true },
+            { id: 8, name: "Honza Hudec", paid: false },
+            { id: 9, name: "Jakub Burianek", paid: false },
+            { id: 10, name: "Jiří Tázler", paid: false },
+            { id: 11, name: "Dominik Křížek", paid: false },
+            { id: 12, name: "Hanča Ježková", paid: false },
+            { id: 13, name: "Ela Chocholáčová", paid: false },
+            { id: 14, name: "Tomášek Jakubsk", paid: false },
+            { id: 15, name: "Pavlína Švadláková", paid: false },
+            { id: 16, name: "Libor Polák", paid: true }
+        ];
+        state.nextStandingId = 17;
+    }
+ }
+
+function saveState() {
+   try {
+      localStorage.setItem('ples-state-v3', JSON.stringify(state));
+      saveHistory();
+      saveAnalytics();
+   } catch (error) {
+      console.error('Error saving state:', error);
+      alert('Chyba při ukládání dat. Zkontrolujte místo na disku.');
+   }
+}
+
+function saveAnalytics() {
+   try {
+      localStorage.setItem('ples-analytics', JSON.stringify(analytics));
+   } catch (error) {
+      console.error('Error saving analytics:', error);
+   }
+}
+
+function saveHistory() {
+   const snapshot = JSON.stringify(state);
+   if (historyIndex < history.length - 1) {
+      history = history.slice(0, historyIndex + 1);
+   }
+   history.push(snapshot);
+   if (history.length > MAX_HISTORY) {
+      history.shift();
+   } else {
+      historyIndex++;
+   }
+}
+
+function undo() {
+   if (historyIndex > 0) {
+      historyIndex--;
+      state = JSON.parse(history[historyIndex]);
+      localStorage.setItem('ples-state-v3', JSON.stringify(state));
+      renderTables();
+      renderStandingList();
+      updateStats();
+      updateStandingSummary();
+      updateSearchFilters();
+   }
+}
+
+function redo() {
+   if (historyIndex < history.length - 1) {
+      historyIndex++;
+      state = JSON.parse(history[historyIndex]);
+      localStorage.setItem('ples-state-v3', JSON.stringify(state));
+      renderTables();
+      renderStandingList();
+      updateStats();
+      updateStandingSummary();
+      updateSearchFilters();
+   }
+}
+
+// Sidebar toggle
+document.getElementById('sidebar-toggle').addEventListener('click', function() {
+   const sidebar = document.querySelector('.sidebar');
+   const backdrop = document.getElementById('sidebar-backdrop');
+   sidebar.classList.toggle('collapsed');
+   backdrop.classList.toggle('active', !sidebar.classList.contains('collapsed'));
+});
+
+document.getElementById('sidebar-backdrop').addEventListener('click', function() {
+   const sidebar = document.querySelector('.sidebar');
+   const backdrop = document.getElementById('sidebar-backdrop');
+   sidebar.classList.add('collapsed');
+   backdrop.classList.remove('active');
+});
+
+// View toggle
+document.getElementById('toggle-admin').addEventListener('click', function() {
+   currentView = 'admin';
+   document.getElementById('admin-view').classList.add('active');
+   document.getElementById('guest-view').classList.remove('active');
+   this.classList.add('active');
+   document.getElementById('toggle-guest').classList.remove('active');
+   // Update URL to add admin param
+   const url = new URL(window.location);
+   url.searchParams.set('admin', 'true');
+   window.history.replaceState({}, '', url);
+});
+
+document.getElementById('toggle-guest').addEventListener('click', function() {
+    currentView = 'guest';
+    document.getElementById('admin-view').classList.remove('active');
+    document.getElementById('guest-view').classList.add('active');
+    this.classList.add('active');
+    document.getElementById('toggle-admin').classList.remove('active');
+    renderGuestView();
+    // Update URL to remove admin param
+    const url = new URL(window.location);
+    url.searchParams.delete('admin');
+    window.history.replaceState({}, '', url);
+  });
+
+// Dropdown toggle
+document.getElementById('btn-export').addEventListener('click', function() {
+  this.parentElement.classList.toggle('open');
+});
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
   }
+});
 
-  function occupiedStandingCount() {
-    return state.standing.filter(p => p.name && p.name.trim().length > 0).length;
-  }
+// Filter toggle
+document.getElementById('toggle-filters').addEventListener('click', function() {
+  const panel = document.getElementById('search-filters');
+  panel.classList.toggle('collapsed');
+  this.textContent = panel.classList.contains('collapsed') ? 'Filtrovat ▼' : 'Filtrovat ▲';
+});
 
-  function renderStats() {
-    const occSeats = occupiedSeatsCount();
-    const occStanding = occupiedStandingCount();
-    const occTotal = occSeats + occStanding;
-    statsSeatingEl.textContent = `${occSeats} / ${totalSeats}`;
-    statsStandingEl.textContent = `${occStanding} / ${STANDING_CAPACITY}`;
-    statsTotalEl.textContent = `${occTotal} / ${totalSeats + STANDING_CAPACITY}`;
-  }
+// Render tables - EXACT layout matching original
+function renderTables() {
+  const layoutEl = document.getElementById('layout');
+  layoutEl.innerHTML = '';
+  
+  // Column 1: Tables 25, 24, 23, 22, 21 (small, vertical)
+  const col1 = document.createElement('div');
+  [25, 24, 23, 22, 21].forEach(num => {
+    col1.appendChild(createTableElement(num, 'small', 4));
+  });
+  layoutEl.appendChild(col1);
+  
+  // Column 2: Tables 5, 4, 3, 2, 1 (horizontal)
+  const col2 = document.createElement('div');
+  [5, 4, 3, 2, 1].forEach(num => {
+    col2.appendChild(createTableElement(num, 'medium-horizontal', 10));
+  });
+  layoutEl.appendChild(col2);
+  
+   // Column 3: Dance floor
+   const col3 = document.createElement('div');
+   col3.innerHTML = `
+     <div class="dancefloor">
+       <div class="podium-line">⠀⠀⠀⠀⠀⠀PODIUM⠀⠀⠀⠀⠀⠀</div>
+       <div class="guest-dancefloor-label">⠀⠀PARKET 8 x 13m⠀⠀</div>
+     </div>
+   `;
+   layoutEl.appendChild(col3);
+  
+  // Column 4: Tables 6, 7, 8, 9, 10 (horizontal)
+  const col4 = document.createElement('div');
+  [6, 7, 8, 9, 10].forEach(num => {
+    col4.appendChild(createTableElement(num, 'medium-horizontal', 10));
+  });
+  layoutEl.appendChild(col4);
+  
+  // Column 5: Tables 26, 27, 28, 29, 30 (small, vertical)
+  const col5 = document.createElement('div');
+  [26, 27, 28, 29, 30].forEach(num => {
+    col5.appendChild(createTableElement(num, 'small', 4));
+  });
+  layoutEl.appendChild(col5);
+  
+  // Bottom section - spans columns 2-4
+  const bottomSection = document.createElement('div');
+  bottomSection.className = 'bottom-section';
+  
+  // Row 1: Tables 15-11
+  const row1 = document.createElement('div');
+  row1.className = 'bottom-row';
+  [15, 14, 13, 12, 11].forEach(num => {
+    row1.appendChild(createTableElement(num, 'medium-vertical', 8));
+  });
+  bottomSection.appendChild(row1);
+  
+  // Row 2: Tables 16-20
+  const row2 = document.createElement('div');
+  row2.className = 'bottom-row';
+  [16, 17, 18, 19, 20].forEach(num => {
+    row2.appendChild(createTableElement(num, 'medium-vertical', 8));
+  });
+  bottomSection.appendChild(row2);
+  
+  layoutEl.appendChild(bottomSection);
+}
 
-  /* otevřít editor sedadla */
-  function openSeatEditor(tableNumber, seatIndex) {
-    const t = state.tables[tableNumber];
-    if (!t) return;
-    const seat = t.seats[seatIndex];
-    if (!seat) return;
+function createTableElement(tableNumber, type, seatCount) {
+    const tableEl = document.createElement('div');
+    tableEl.className = `table ${type}`;
+    if (tableNumber <= 10) tableEl.classList.add('level-low');
+    else if (tableNumber <= 20) tableEl.classList.add('level-mid');
+    else tableEl.classList.add('level-high');
+    tableEl.dataset.table = tableNumber;
 
-    seatEditorContext = { tableNumber, seatIndex };
-    seatTableSpan.textContent = tableNumber;
-    seatIndexSpan.textContent = seatIndex;
-    seatNameInput.value = seat.name || "";
+    const numberEl = document.createElement('div');
+    numberEl.className = 'table-number';
+    numberEl.textContent = tableNumber;
+    tableEl.appendChild(numberEl);
 
-    setPaidButtons(seat.paid);
+     const tableData = state.tables[tableNumber] || { status: 'free', seats: [] };
 
-    seatOverlay.classList.remove("hidden");
-    seatNameInput.focus();
-    seatNameInput.select();
-  }
+     const tablePrice = calculateTablePrice(tableNumber);
+     const isFullyPaid = tableData.seats.every(seat => !seat || !seat.name || seat.paid);
 
-  function closeSeatEditor() {
-    seatOverlay.classList.add("hidden");
-    seatEditorContext = null;
-  }
+     if (currentView !== 'guest' && tablePrice > 0) {
+       const priceEl = document.createElement('div');
+       if (isFullyPaid) {
+          priceEl.className = `table-price table-price-paid ${(type === 'medium-vertical' || type === 'small') ? 'table-price-large' : ''} ${type === 'small' ? 'table-price-small' : ''}`;
+          priceEl.textContent = `✓ ${tablePrice}`;
+       } else {
+          priceEl.className = `table-price ${(type === 'medium-vertical' || type === 'small') ? 'table-price-large' : ''} ${type === 'small' ? 'table-price-small' : ''}`;
+          priceEl.textContent = `${tablePrice}`;
+       }
+       tableEl.appendChild(priceEl);
+    }
 
-  function setPaidButtons(isPaid) {
-    if (isPaid) {
-      seatBtnPaid.classList.add("active-paid");
-      seatBtnUnpaid.classList.remove("active-unpaid");
+    const graduates = [...new Set(tableData.seats.map(s => s?.graduate).filter(Boolean))];
+   if (graduates.length === 1) {
+     const graduateEl = document.createElement('div');
+     graduateEl.className = `table-graduate ${(type === 'medium-vertical' || type === 'small') ? 'table-graduate-large' : ''}`;
+     graduateEl.textContent = graduates[0];
+     graduateEl.title = graduates[0];
+     tableEl.appendChild(graduateEl);
+   }
+  
+  const chairsEl = document.createElement('div');
+  chairsEl.className = 'chairs';
+  
+  for (let i = 0; i < seatCount; i++) {
+    const seatData = tableData.seats[i] || { name: '', paid: false };
+    const chairEl = document.createElement('div');
+    chairEl.className = 'chair';
+    
+    if (seatData.name && seatData.name.trim()) {
+       chairEl.classList.add(seatData.paid ? 'chair-paid' : 'chair-unpaid');
+       chairEl.title = `${seatData.name}${seatData.graduate ? ` (${seatData.graduate})` : ''} - ${seatData.paid ? 'Zaplaceno' : 'Nezaplaceno'}`;
     } else {
-      seatBtnPaid.classList.remove("active-paid");
-      seatBtnUnpaid.classList.add("active-unpaid");
+       chairEl.classList.add('chair-empty');
+       chairEl.title = 'Volné místo';
     }
-    seatOverlay.dataset.paid = isPaid ? "true" : "false";
+    
+    chairEl.addEventListener('click', (e) => {
+       e.stopPropagation();
+       if (bulkMode) {
+          const chairId = `${tableNumber}-${i}`;
+          if (selectedChairs.has(chairId)) {
+             selectedChairs.delete(chairId);
+          } else {
+             selectedChairs.add(chairId);
+          }
+          chairEl.classList.toggle('selected');
+       } else {
+          openSeatEditor(tableNumber, i);
+       }
+    });
+
+    chairEl.addEventListener('dragover', (e) => {
+       e.preventDefault();
+       chairEl.classList.add('drag-over');
+    });
+
+    chairEl.addEventListener('dragleave', () => {
+       chairEl.classList.remove('drag-over');
+    });
+
+    chairEl.addEventListener('drop', (e) => {
+       e.preventDefault();
+       chairEl.classList.remove('drag-over');
+       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+       assignGuestToChair(tableNumber, i, data);
+    });
+    
+    chairsEl.appendChild(chairEl);
   }
+  
+  tableEl.appendChild(chairsEl);
+  return tableEl;
+}
 
-  function saveSeatFromEditor() {
-    if (!seatEditorContext) return;
-    const { tableNumber, seatIndex } = seatEditorContext;
-    const t = state.tables[tableNumber];
-    const seat = t.seats[seatIndex];
-
-    seat.name = seatNameInput.value.trim();
-    seat.paid = seatOverlay.dataset.paid === "true";
-
-    // prázdné jméno vždy nezaplacené
-    if (!seat.name) {
-      seat.paid = false;
+function calculateTablePrice(tableNumber) {
+  const tableData = state.tables[tableNumber];
+  if (!tableData) return 0;
+  
+  let total = 0;
+  tableData.seats.forEach(seat => {
+    if (seat && seat.name && seat.name.trim()) {
+      total += PRICE_SEAT;
     }
+  });
+  return total;
+}
 
-    saveState();
-    renderTables();
-    renderStanding();
-    renderStats();
-    renderGlobalResults();
-    closeSeatEditor();
+
+
+// Seat editor modal
+function openBulkAssignModal() {
+   const modal = document.getElementById('bulk-assign-overlay');
+   const nameInput = document.getElementById('bulk-name');
+   const graduateInput = document.getElementById('bulk-graduate');
+   const unpaidBtn = document.getElementById('bulk-unpaid');
+   const paidBtn = document.getElementById('bulk-paid');
+
+   nameInput.value = '';
+   graduateInput.value = '';
+   unpaidBtn.classList.add('active');
+   paidBtn.classList.remove('active');
+
+   modal.classList.add('active');
+   nameInput.focus();
+}
+
+function saveBulkAssign() {
+   const nameInput = document.getElementById('bulk-name');
+   const graduateInput = document.getElementById('bulk-graduate');
+   const paidBtn = document.getElementById('bulk-paid');
+
+   const name = nameInput.value.trim();
+   const graduate = graduateInput.value.trim();
+   const paid = paidBtn.classList.contains('active');
+
+   if (!name) {
+      alert('Zadejte jméno.');
+      return;
+   }
+
+   selectedChairs.forEach(chairId => {
+      const [table, seat] = chairId.split('-').map(Number);
+      if (!state.tables[table]) {
+         state.tables[table] = { status: 'free', seats: [] };
+      }
+      state.tables[table].seats[seat] = {
+         name: name,
+         paid: paid,
+         graduate: graduate
+      };
+   });
+
+   analytics.edits += selectedChairs.size;
+   analytics.lastActivity = new Date().toISOString();
+   saveState();
+   renderTables();
+   updateStats();
+   updateHistoryButtons();
+   closeBulkAssignModal();
+   selectedChairs.clear();
+}
+
+function closeBulkAssignModal() {
+   document.getElementById('bulk-assign-overlay').classList.remove('active');
+}
+
+function assignGuestToChair(tableNumber, seatIndex, guestData) {
+   analytics.edits++;
+   analytics.lastActivity = new Date().toISOString();
+
+   if (!state.tables[tableNumber]) {
+      state.tables[tableNumber] = { status: 'free', seats: [] };
+   }
+
+   state.tables[tableNumber].seats[seatIndex] = {
+      name: guestData.name,
+      paid: guestData.paid,
+      graduate: guestData.graduate
+   };
+
+   saveState();
+   renderTables();
+   updateStats();
+   updateHistoryButtons();
+}
+
+document.getElementById('bulk-unpaid').addEventListener('click', function() {
+   document.getElementById('bulk-paid').classList.remove('active');
+   this.classList.add('active');
+});
+
+document.getElementById('bulk-paid').addEventListener('click', function() {
+   document.getElementById('bulk-unpaid').classList.remove('active');
+   this.classList.add('active');
+});
+
+document.getElementById('bulk-assign-cancel').addEventListener('click', closeBulkAssignModal);
+document.getElementById('bulk-assign-save').addEventListener('click', saveBulkAssign);
+
+document.getElementById('bulk-assign-overlay').addEventListener('click', function(e) {
+   if (e.target === this) closeBulkAssignModal();
+});
+
+function openSeatEditor(tableNumber, seatIndex) {
+  const modal = document.getElementById('seat-editor-overlay');
+  const titleEl = document.getElementById('modal-title');
+  const nameInput = document.getElementById('modal-name');
+  const graduateInput = document.getElementById('modal-graduate');
+  const unpaidBtn = document.getElementById('modal-unpaid');
+  const paidBtn = document.getElementById('modal-paid');
+  
+  currentEditingChair = { table: tableNumber, seat: seatIndex };
+  
+  if (!state.tables[tableNumber]) {
+    state.tables[tableNumber] = { status: 'free', seats: [] };
   }
+  
+  const seatData = state.tables[tableNumber].seats[seatIndex] || { name: '', paid: false, graduate: '' };
+  
+  titleEl.textContent = `Stůl ${tableNumber} - Místo ${seatIndex + 1}`;
+  nameInput.value = seatData.name;
+  graduateInput.value = seatData.graduate || '';
+  
+  unpaidBtn.classList.toggle('active', !seatData.paid);
+  paidBtn.classList.toggle('active', seatData.paid);
+  
+  modal.classList.add('active');
+  nameInput.focus();
+}
 
-  seatBtnPaid.addEventListener("click", () => setPaidButtons(true));
-  seatBtnUnpaid.addEventListener("click", () => setPaidButtons(false));
-  seatBtnCancel.addEventListener("click", closeSeatEditor);
-  seatBtnSave.addEventListener("click", saveSeatFromEditor);
-  seatOverlay.addEventListener("click", (e) => {
-    if (e.target === seatOverlay) closeSeatEditor();
-  });
-  seatNameInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      saveSeatFromEditor();
-    }
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !seatOverlay.classList.contains("hidden")) {
+function closeSeatEditor() {
+  document.getElementById('seat-editor-overlay').classList.remove('active');
+  currentEditingChair = null;
+}
+
+function saveSeatEdit() {
+   if (!currentEditingChair) return;
+
+   const nameInput = document.getElementById('modal-name');
+   const graduateInput = document.getElementById('modal-graduate');
+
+   const name = nameInput.value.trim();
+   const graduate = graduateInput.value.trim();
+
+   // Validation
+   if (name && name.length > 50) {
+      alert('Jméno je příliš dlouhé (max 50 znaků).');
+      return;
+   }
+   if (graduate && graduate.length > 50) {
+      alert('Jméno maturanta je příliš dlouhé (max 50 znaků).');
+      return;
+   }
+
+   showLoading();
+
+   setTimeout(() => {
+      const { table, seat } = currentEditingChair;
+      const paidBtn = document.getElementById('modal-paid');
+      const paid = paidBtn.classList.contains('active');
+
+      if (!state.tables[table]) {
+         state.tables[table] = { status: 'free', seats: [] };
+      }
+
+      state.tables[table].seats[seat] = {
+         name: name,
+         paid: name ? paid : false,
+         graduate: graduate
+      };
+
+      analytics.edits++;
+      analytics.lastActivity = new Date().toISOString();
+      saveState();
+      renderTables();
+      updateStats();
+      updateHistoryButtons();
       closeSeatEditor();
+      hideLoading();
+   }, 100); // Simulate delay for UX
+}
+
+function removeSeatGuest() {
+   if (!currentEditingChair) return;
+
+   analytics.edits++;
+   analytics.lastActivity = new Date().toISOString();
+
+   const { table, seat } = currentEditingChair;
+
+   if (!state.tables[table]) return;
+
+   state.tables[table].seats[seat] = {
+      name: '',
+      paid: false,
+      graduate: ''
+   };
+
+   saveState();
+   renderTables();
+   updateStats();
+   updateHistoryButtons();
+   closeSeatEditor();
+}
+
+// Modal handlers
+document.getElementById('modal-unpaid').addEventListener('click', function() {
+  document.getElementById('modal-paid').classList.remove('active');
+  this.classList.add('active');
+});
+
+document.getElementById('modal-paid').addEventListener('click', function() {
+  document.getElementById('modal-unpaid').classList.remove('active');
+  this.classList.add('active');
+});
+
+document.getElementById('modal-cancel').addEventListener('click', closeSeatEditor);
+document.getElementById('modal-save').addEventListener('click', saveSeatEdit);
+document.getElementById('modal-remove').addEventListener('click', removeSeatGuest);
+
+document.getElementById('seat-editor-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSeatEditor();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeSeatEditor();
+  if (e.key === 'Enter' && currentEditingChair) saveSeatEdit();
+});
+
+// Standing guests
+function renderStandingList(filterText = '') {
+  const listEl = document.getElementById('standing-list');
+  const filter = filterText.toLowerCase();
+  
+  listEl.innerHTML = '';
+  
+   state.standing.forEach(guest => {
+     if (filter && !guest.name.toLowerCase().includes(filter)) return;
+
+     const personEl = document.createElement('div');
+     personEl.className = 'person';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'select-checkbox';
+      checkbox.dataset.id = guest.id;
+
+     const nameInput = document.createElement('input');
+     nameInput.type = 'text';
+     nameInput.value = guest.name;
+     nameInput.placeholder = 'Jméno...';
+     nameInput.addEventListener('input', function() {
+       guest.name = this.value.trim();
+       saveState();
+       updateStats();
+       updateStandingSummary();
+     });
+
+      const paymentBadge = document.createElement('button');
+      paymentBadge.className = `payment-badge ${guest.paid ? 'paid' : 'unpaid'}`;
+      paymentBadge.textContent = guest.paid ? 'Zaplaceno' : 'Nezaplaceno';
+      paymentBadge.addEventListener('click', function() {
+        guest.paid = !guest.paid;
+        this.className = `payment-badge ${guest.paid ? 'paid' : 'unpaid'}`;
+        this.textContent = guest.paid ? 'Zaplaceno' : 'Nezaplaceno';
+        saveState();
+        updateStats();
+      });
+
+     const deleteBtn = document.createElement('button');
+     deleteBtn.className = 'delete-btn';
+     deleteBtn.textContent = '×';
+     deleteBtn.title = 'Smazat';
+     deleteBtn.addEventListener('click', function() {
+       if (confirm(`Odebrat ${guest.name || 'hosta'}?`)) {
+         state.standing = state.standing.filter(g => g.id !== guest.id);
+         saveState();
+         renderStandingList(document.getElementById('standing-search').value);
+         updateStats();
+         updateStandingSummary();
+       }
+     });
+
+     personEl.appendChild(checkbox);
+     personEl.appendChild(nameInput);
+     personEl.appendChild(paymentBadge);
+     personEl.appendChild(deleteBtn);
+
+     listEl.appendChild(personEl);
+    });
+ }
+
+function updateStandingSummary() {
+  const occupied = state.standing.filter(g => g.name.trim()).length;
+  document.getElementById('standing-count').textContent = occupied;
+  document.getElementById('standing-progress').style.width = `${(occupied / 30) * 100}%`;
+}
+
+document.getElementById('standing-add').addEventListener('click', function() {
+  state.standing.push({ id: state.nextStandingId++, name: '', paid: false });
+  saveState();
+  renderStandingList(document.getElementById('standing-search').value);
+  updateStandingSummary();
+});
+
+document.getElementById('standing-search').addEventListener('input', function() {
+  renderStandingList(this.value);
+});
+
+// Update search filters
+function updateSearchFilters() {
+   const graduateSelect = document.getElementById('filter-graduate');
+   graduateSelect.innerHTML = '<option value="">Všichni maturanti</option>';
+
+   const graduates = new Set();
+   Object.values(state.tables).forEach(table => {
+      table.seats.forEach(seat => {
+         if (seat && seat.graduate) graduates.add(seat.graduate);
+      });
+   });
+
+   Array.from(graduates).sort().forEach(grad => {
+      const option = document.createElement('option');
+      option.value = grad;
+      option.textContent = grad;
+      graduateSelect.appendChild(option);
+   });
+}
+
+// Global search with filters
+function performSearch() {
+   const query = document.getElementById('global-search').value.trim().toLowerCase();
+   const graduateFilter = document.getElementById('filter-graduate').value;
+   const paymentFilter = document.getElementById('filter-payment').value;
+   const tableMin = parseInt(document.getElementById('filter-table-min').value) || 1;
+   const tableMax = parseInt(document.getElementById('filter-table-max').value) || 30;
+
+   const resultsEl = document.getElementById('global-results');
+   const detailsPanel = document.getElementById('selected-guest-details');
+
+   if (!query && !graduateFilter && !paymentFilter && tableMin === 1 && tableMax === 30) {
+      resultsEl.innerHTML = '';
+      detailsPanel.style.display = 'none';
+      return;
+   }
+
+   const results = [];
+
+   Object.keys(state.tables).forEach(tableNum => {
+      const tableNumInt = parseInt(tableNum);
+      if (tableNumInt < tableMin || tableNumInt > tableMax) return;
+
+      const table = state.tables[tableNum];
+      table.seats.forEach((seat, idx) => {
+          if (seat && seat.name) {
+             const matchesQuery = !query || seat.name.toLowerCase().includes(query) || (seat.graduate && seat.graduate.toLowerCase().includes(query));
+             const matchesGraduate = !graduateFilter || seat.graduate === graduateFilter;
+             const matchesPayment = !paymentFilter || (paymentFilter === 'paid' ? seat.paid : !seat.paid);
+
+            if (matchesQuery && matchesGraduate && matchesPayment) {
+               results.push({
+                  type: 'seat',
+                  name: seat.name,
+                  table: tableNumInt,
+                  seat: idx,
+                  paid: seat.paid,
+                  price: PRICE_SEAT
+               });
+            }
+         }
+      });
+   });
+
+   state.standing.forEach(guest => {
+      if (guest.name) {
+         const matchesQuery = !query || guest.name.toLowerCase().includes(query);
+         const matchesPayment = !paymentFilter || (paymentFilter === 'paid' ? guest.paid : !guest.paid);
+
+         if (matchesQuery && matchesPayment) {
+            results.push({
+               type: 'standing',
+               name: guest.name,
+               id: guest.id,
+               paid: guest.paid,
+               price: PRICE_STANDING
+            });
+         }
+      }
+   });
+
+   resultsEl.innerHTML = '';
+
+   if (results.length === 0) {
+      resultsEl.innerHTML = '<div style="padding: 10px; color: var(--gray-500); text-align: center;">Nenalezeno</div>';
+      detailsPanel.style.display = 'none';
+      return;
+   }
+
+   const grouped = {};
+   results.forEach(result => {
+      if (!grouped[result.name]) grouped[result.name] = [];
+      grouped[result.name].push(result);
+   });
+
+   Object.keys(grouped).forEach(name => {
+      const personResults = grouped[name];
+      const totalPrice = personResults.reduce((sum, r) => sum + r.price, 0);
+      const allPaid = personResults.every(r => r.paid);
+
+      const resultEl = document.createElement('div');
+      resultEl.className = 'search-result';
+
+      let locationText = personResults.map(r => {
+         return r.type === 'seat' ? `Stůl ${r.table}/M${r.seat + 1}` : 'Stání';
+      }).join(' + ');
+
+       const graduateText = personResults[0].graduate ? `<small>Maturant: ${personResults[0].graduate}</small>` : '';
+       resultEl.innerHTML = `
+          <strong>${name}</strong>
+          <small>${locationText}</small>
+          ${graduateText}
+          <small style="color: var(--primary); font-weight: 700;">${totalPrice} Kč ${allPaid ? '✅' : '❌'}</small>
+       `;
+
+      resultEl.draggable = true;
+      resultEl.addEventListener('dragstart', function(e) {
+         e.dataTransfer.setData('text/plain', JSON.stringify({ name, graduate: personResults[0].graduate, paid: personResults.every(r => r.paid) }));
+      });
+
+      resultEl.addEventListener('click', function() {
+         showGuestDetails(name, personResults);
+         if (personResults[0].type === 'seat') {
+            highlightChair(personResults[0].table, personResults[0].seat);
+         }
+      });
+
+      resultsEl.appendChild(resultEl);
+   });
+}
+
+document.getElementById('global-search').addEventListener('input', function() {
+   analytics.searches++;
+   analytics.lastActivity = new Date().toISOString();
+   saveAnalytics();
+   performSearch();
+});
+document.getElementById('filter-graduate').addEventListener('change', performSearch);
+document.getElementById('filter-payment').addEventListener('change', performSearch);
+document.getElementById('filter-table-min').addEventListener('input', performSearch);
+document.getElementById('filter-table-max').addEventListener('input', performSearch);
+
+function showGuestDetails(name, results) {
+  const detailsPanel = document.getElementById('selected-guest-details');
+  const detailsContent = document.getElementById('guest-details-content');
+  
+  const totalPrice = results.reduce((sum, r) => sum + r.price, 0);
+  const paidPrice = results.filter(r => r.paid).reduce((sum, r) => sum + r.price, 0);
+  const unpaidPrice = totalPrice - paidPrice;
+  
+  detailsContent.innerHTML = `
+    <div class="guest-detail-item">
+      <span class="guest-detail-label">Jméno:</span>
+      <span class="guest-detail-value">${name}</span>
+    </div>
+    <div class="guest-detail-item">
+      <span class="guest-detail-label">Míst:</span>
+      <span class="guest-detail-value">${results.length}</span>
+    </div>
+    <div class="guest-detail-item">
+      <span class="guest-detail-label">Umístění:</span>
+      <span class="guest-detail-value">${results.map(r => 
+        r.type === 'seat' ? `Stůl ${r.table}/M${r.seat + 1}` : 'Stání'
+      ).join(', ')}</span>
+    </div>
+    <div class="guest-detail-item">
+      <span class="guest-detail-label">Celkem:</span>
+      <span class="guest-detail-value" style="color: var(--primary);">${totalPrice} Kč</span>
+    </div>
+    <div class="guest-detail-item">
+      <span class="guest-detail-label">Zaplaceno:</span>
+      <span class="guest-detail-value" style="color: var(--success);">${paidPrice} Kč</span>
+    </div>
+    <div class="guest-detail-item">
+      <span class="guest-detail-label">Nezaplaceno:</span>
+      <span class="guest-detail-value" style="color: var(--danger);">${unpaidPrice} Kč</span>
+    </div>
+  `;
+  
+  detailsPanel.style.display = 'block';
+}
+
+function highlightChair(tableNum, seatIdx) {
+  const tableEl = document.querySelector(`.table[data-table="${tableNum}"]`);
+  if (!tableEl) return;
+  
+  tableEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  
+  const chairs = tableEl.querySelectorAll('.chair');
+  const chair = chairs[seatIdx];
+  if (chair) {
+    chair.classList.add('highlight');
+    setTimeout(() => chair.classList.remove('highlight'), 2000);
+  }
+}
+
+// Statistics
+function updateStats() {
+  let seatsOccupied = 0;
+  let seatsPaid = 0;
+  let seatsUnpaid = 0;
+  
+  Object.keys(state.tables).forEach(tableNum => {
+    const table = state.tables[tableNum];
+    table.seats.forEach(seat => {
+      if (seat && seat.name && seat.name.trim()) {
+        seatsOccupied++;
+        if (seat.paid) seatsPaid++;
+        else seatsUnpaid++;
+      }
+    });
+  });
+  
+  const standingOccupied = state.standing.filter(g => g.name && g.name.trim()).length;
+  const standingPaid = state.standing.filter(g => g.name && g.name.trim() && g.paid).length;
+  const standingUnpaid = standingOccupied - standingPaid;
+  
+  const total = seatsOccupied + standingOccupied;
+  const totalRevenue = (seatsPaid * PRICE_SEAT) + (standingPaid * PRICE_STANDING);
+  const totalUnpaid = (seatsUnpaid * PRICE_SEAT) + (standingUnpaid * PRICE_STANDING);
+  
+  document.getElementById('stat-seats').textContent = seatsOccupied;
+  document.getElementById('stat-standing').textContent = standingOccupied;
+  document.getElementById('stat-total').textContent = `${total} / 230`;
+  document.getElementById('stat-revenue').textContent = `${totalRevenue.toLocaleString('cs-CZ')} Kč`;
+  document.getElementById('stat-unpaid').textContent = `${totalUnpaid.toLocaleString('cs-CZ')} Kč`;
+}
+
+// Guest view
+function renderGuestView() {
+  const guestLayoutEl = document.getElementById('guest-layout');
+  const guestStatsEl = document.getElementById('guest-stats');
+  
+  let seatsOccupied = 0;
+  const standingOccupied = state.standing.filter(g => g.name && g.name.trim()).length;
+  
+  Object.keys(state.tables).forEach(tableNum => {
+    const table = state.tables[tableNum];
+    table.seats.forEach(seat => {
+      if (seat && seat.name && seat.name.trim()) seatsOccupied++;
+    });
+  });
+  
+  const total = seatsOccupied + standingOccupied;
+  const available = 230 - total;
+  
+  guestStatsEl.innerHTML = `
+    <div class="guest-stat-card">
+      <div class="value">${total}</div>
+      <div class="label">Potvrzených hostů</div>
+    </div>
+    <div class="guest-stat-card">
+      <div class="value">${seatsOccupied}</div>
+      <div class="label">Míst u stolů</div>
+    </div>
+    <div class="guest-stat-card">
+      <div class="value">${standingOccupied}</div>
+      <div class="label">Míst na stání</div>
+    </div>
+    <div class="guest-stat-card">
+      <div class="value">${available}</div>
+      <div class="label">Volných míst</div>
+    </div>
+  `;
+  
+  // Copy admin layout logic for guest view
+  guestLayoutEl.innerHTML = '';
+  
+  const col1 = document.createElement('div');
+  [25, 24, 23, 22, 21].forEach(num => {
+    col1.appendChild(createGuestTableElement(num, 'small', 4));
+  });
+  guestLayoutEl.appendChild(col1);
+  
+  const col2 = document.createElement('div');
+  [5, 4, 3, 2, 1].forEach(num => {
+    col2.appendChild(createGuestTableElement(num, 'medium-horizontal', 10));
+  });
+  guestLayoutEl.appendChild(col2);
+  
+  const col3 = document.createElement('div');
+   col3.innerHTML = `
+     <div class="dancefloor">
+       <div class="podium-line">⠀⠀⠀⠀⠀⠀⠀⠀PODIUM⠀⠀⠀⠀⠀⠀⠀⠀</div>
+       <div class="guest-dancefloor-label">⠀⠀⠀⠀⠀⠀⠀⠀PARKET 8 x 13m⠀⠀⠀⠀⠀⠀⠀⠀</div>
+     </div>
+   `;
+  guestLayoutEl.appendChild(col3);
+  
+  const col4 = document.createElement('div');
+  [6, 7, 8, 9, 10].forEach(num => {
+    col4.appendChild(createGuestTableElement(num, 'medium-horizontal', 10));
+  });
+  guestLayoutEl.appendChild(col4);
+  
+  const col5 = document.createElement('div');
+  [26, 27, 28, 29, 30].forEach(num => {
+    col5.appendChild(createGuestTableElement(num, 'small', 4));
+  });
+  guestLayoutEl.appendChild(col5);
+  
+  const bottomSection = document.createElement('div');
+  bottomSection.className = 'bottom-section';
+  
+  const row1 = document.createElement('div');
+  row1.className = 'bottom-row';
+  [15, 14, 13, 12, 11].forEach(num => {
+    row1.appendChild(createGuestTableElement(num, 'medium-vertical', 8));
+  });
+  bottomSection.appendChild(row1);
+  
+  const row2 = document.createElement('div');
+  row2.className = 'bottom-row';
+  [16, 17, 18, 19, 20].forEach(num => {
+    row2.appendChild(createGuestTableElement(num, 'medium-vertical', 8));
+  });
+  bottomSection.appendChild(row2);
+  
+  guestLayoutEl.appendChild(bottomSection);
+}
+
+function createGuestTableElement(tableNumber, type, seatCount) {
+   const tableEl = document.createElement('div');
+   tableEl.className = `table ${type}`;
+   tableEl.style.cursor = 'default';
+
+   const numberEl = document.createElement('div');
+   numberEl.className = 'table-number';
+   numberEl.textContent = tableNumber;
+   tableEl.appendChild(numberEl);
+
+    const tableData = state.tables[tableNumber] || { status: 'free', seats: [] };
+
+    const tablePrice = calculateTablePrice(tableNumber);
+    const isFullyPaid = tableData.seats.every(seat => !seat || !seat.name || seat.paid);
+
+    if (tablePrice > 0) {
+       const priceEl = document.createElement('div');
+       if (isFullyPaid) {
+          priceEl.className = `table-price table-price-paid ${(type === 'medium-vertical' || type === 'small') ? 'table-price-large' : ''} ${type === 'small' ? 'table-price-small' : ''}`;
+          priceEl.textContent = `✓ ${tablePrice}`;
+       } else {
+          priceEl.className = `table-price ${(type === 'medium-vertical' || type === 'small') ? 'table-price-large' : ''} ${type === 'small' ? 'table-price-small' : ''}`;
+          priceEl.textContent = `${tablePrice}`;
+       }
+       tableEl.appendChild(priceEl);
+    }
+
+    const graduates = [...new Set(tableData.seats.map(s => s?.graduate).filter(Boolean))];
+   if (graduates.length === 1) {
+     const graduateEl = document.createElement('div');
+     graduateEl.className = `table-graduate ${(type === 'medium-vertical' || type === 'small') ? 'table-graduate-large' : ''}`;
+     graduateEl.textContent = graduates[0];
+     graduateEl.title = graduates[0];
+     tableEl.appendChild(graduateEl);
+   }
+  
+  const chairsEl = document.createElement('div');
+  chairsEl.className = 'chairs';
+  
+  for (let i = 0; i < seatCount; i++) {
+    const seatData = tableData.seats[i] || { name: '', paid: false };
+    const chairEl = document.createElement('div');
+    chairEl.className = 'chair';
+    chairEl.style.cursor = 'default';
+    
+    if (seatData.name && seatData.name.trim()) {
+      chairEl.classList.add(seatData.paid ? 'chair-paid' : 'chair-unpaid');
+      chairEl.title = seatData.name;
+    } else {
+      chairEl.classList.add('chair-empty');
+    }
+    
+    chairsEl.appendChild(chairEl);
+  }
+  
+  tableEl.appendChild(chairsEl);
+  return tableEl;
+}
+
+// Guest search
+document.getElementById('guest-search').addEventListener('input', function() {
+  const query = this.value.trim().toLowerCase();
+  const resultsEl = document.getElementById('guest-search-results');
+  
+  if (!query) {
+    resultsEl.innerHTML = '';
+    return;
+  }
+  
+  const results = [];
+  
+  Object.keys(state.tables).forEach(tableNum => {
+    const table = state.tables[tableNum];
+    table.seats.forEach((seat, idx) => {
+      if (seat && seat.name && seat.name.toLowerCase().includes(query)) {
+        results.push({
+          type: 'seat',
+          name: seat.name,
+          table: parseInt(tableNum),
+          seat: idx + 1,
+          graduate: seat.graduate
+        });
+      }
+    });
+  });
+  
+  state.standing.forEach(guest => {
+    if (guest.name && guest.name.toLowerCase().includes(query)) {
+      results.push({
+        type: 'standing',
+        name: guest.name
+      });
     }
   });
+  
+  resultsEl.innerHTML = '';
+  
+  if (results.length === 0) {
+    resultsEl.innerHTML = '<div style="padding: 10px; color: var(--gray-500); text-align: center;">Nenalezeno</div>';
+    return;
+  }
+  
+  results.forEach(result => {
+    const resultEl = document.createElement('div');
+    resultEl.className = 'search-result';
+    
+    if (result.type === 'seat') {
+      resultEl.innerHTML = `
+        <strong>${result.name}</strong>
+        <small>Stůl ${result.table}, místo ${result.seat}</small>
+        ${result.graduate ? `<small style="color: var(--gray-600);">od ${result.graduate}</small>` : ''}
+      `;
+    } else {
+      resultEl.innerHTML = `
+        <strong>${result.name}</strong>
+        <small>Stání</small>
+      `;
+    }
+    
+    resultsEl.appendChild(resultEl);
+  });
+});
 
-  function renderTables() {
-    document.querySelectorAll(".table").forEach(tableEl => {
-      const tableNumber = tableEl.querySelector(".table-number").textContent.trim();
-      tableEl.dataset.tableNumber = tableNumber;
-      const tableState = state.tables[tableNumber];
-      const seatsCount = parseInt(tableEl.dataset.seats || "0", 10) || 0;
+// Export/Import
+document.getElementById('btn-export').addEventListener('click', function() {
+   analytics.exports++;
+   analytics.lastActivity = new Date().toISOString();
+   saveAnalytics();
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const now = new Date();
+  const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ples-plan-${timestamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
 
-      tableEl.innerHTML = "";
+document.getElementById('btn-import').addEventListener('click', function() {
+  document.getElementById('file-import').click();
+});
 
-      const numberSpan = document.createElement("span");
-      numberSpan.className = "table-number";
-      numberSpan.textContent = tableNumber;
-      tableEl.appendChild(numberSpan);
+// Bulk operations
+document.getElementById('btn-bulk-mode').addEventListener('click', function() {
+   bulkMode = !bulkMode;
+   selectedChairs.clear();
+   document.getElementById('bulk-controls').style.display = bulkMode ? 'block' : 'none';
+   this.textContent = bulkMode ? 'Ukončit hromadné úpravy' : 'Hromadné úpravy';
+   renderTables();
+});
 
-      const statusBadge = document.createElement("div");
-      statusBadge.className = "table-status-badge";
-      const statusText =
-        tableState.status === "free" ? "Volný" :
-        tableState.status === "reserved" ? "Rezervace" : "Zaplacený";
-      statusBadge.textContent = statusText;
-      statusBadge.addEventListener("click", () => {
-        tableState.status = nextTableStatus(tableState.status);
+document.getElementById('btn-bulk-assign').addEventListener('click', function() {
+   if (selectedChairs.size === 0) {
+      alert('Vyberte alespoň jedno místo.');
+      return;
+   }
+   openBulkAssignModal();
+});
+
+document.getElementById('btn-bulk-clear').addEventListener('click', function() {
+   if (selectedChairs.size === 0) {
+      alert('Vyberte alespoň jedno místo.');
+      return;
+   }
+   if (confirm(`Vymazat ${selectedChairs.size} vybraných míst?`)) {
+      selectedChairs.forEach(chairId => {
+         const [table, seat] = chairId.split('-').map(Number);
+         if (state.tables[table]) {
+            state.tables[table].seats[seat] = { name: '', paid: false, graduate: '' };
+         }
+      });
+      saveState();
+      renderTables();
+      updateStats();
+      selectedChairs.clear();
+   }
+});
+
+document.getElementById('btn-bulk-cancel').addEventListener('click', function() {
+   bulkMode = false;
+   selectedChairs.clear();
+   document.getElementById('bulk-controls').style.display = 'none';
+   document.getElementById('btn-bulk-mode').textContent = 'Hromadné úpravy';
+   renderTables();
+});
+
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-redo').addEventListener('click', redo);
+
+function updateHistoryButtons() {
+   document.getElementById('btn-undo').disabled = historyIndex <= 0;
+   document.getElementById('btn-redo').disabled = historyIndex >= history.length - 1;
+}
+
+function updateAnalyticsDisplay() {
+   document.getElementById('analytics-edits').textContent = analytics.edits;
+   document.getElementById('analytics-searches').textContent = analytics.searches;
+   document.getElementById('analytics-exports').textContent = analytics.exports;
+   document.getElementById('analytics-last').textContent = analytics.lastActivity ? new Date(analytics.lastActivity).toLocaleString('cs-CZ') : 'Nikdy';
+}
+
+// Reports
+document.getElementById('btn-report-csv').addEventListener('click', function() {
+   generateCSVReport();
+});
+
+document.getElementById('btn-report-pdf').addEventListener('click', function() {
+   generatePDFReport();
+});
+
+function generateCSVReport() {
+   let csv = 'Stůl,Místo,Jméno,Maturant,Zaplaceno,Cena\n';
+
+   Object.keys(state.tables).forEach(tableNum => {
+      const table = state.tables[tableNum];
+      table.seats.forEach((seat, idx) => {
+         if (seat && seat.name) {
+            csv += `${tableNum},${idx + 1},"${seat.name}","${seat.graduate || ''}",${seat.paid ? 'Ano' : 'Ne'},${PRICE_SEAT}\n`;
+         }
+      });
+   });
+
+   csv += '\nStání,ID,Jméno,Zaplaceno,Cena\n';
+   state.standing.forEach(guest => {
+      if (guest.name) {
+         csv += `Stání,${guest.id},"${guest.name}",${guest.paid ? 'Ano' : 'Ne'},${PRICE_STANDING}\n`;
+      }
+   });
+
+   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+   const url = URL.createObjectURL(blob);
+   const a = document.createElement('a');
+   a.href = url;
+   a.download = `ples-report-${new Date().toISOString().slice(0, 10)}.csv`;
+   document.body.appendChild(a);
+   a.click();
+   document.body.removeChild(a);
+   URL.revokeObjectURL(url);
+}
+
+function generatePDFReport() {
+   const { jsPDF } = window.jspdf;
+   const doc = new jsPDF();
+
+   doc.setFontSize(16);
+   doc.text('Plán stolů - Maturitní ples 2025', 20, 20);
+
+   doc.setFontSize(12);
+   let y = 40;
+
+   // Stats
+   const stats = calculateStats();
+   doc.text(`Celkem míst: ${stats.total}`, 20, y);
+   y += 10;
+   doc.text(`Obsazeno: ${stats.occupied}`, 20, y);
+   y += 10;
+   doc.text(`Tržby: ${stats.revenue} Kč`, 20, y);
+   y += 10;
+   doc.text(`Nezaplaceno: ${stats.unpaid} Kč`, 20, y);
+   y += 20;
+
+   // Tables summary
+   doc.text('Přehled stolů:', 20, y);
+   y += 10;
+
+   Object.keys(state.tables).forEach(tableNum => {
+      const table = state.tables[tableNum];
+      const occupied = table.seats.filter(s => s && s.name).length;
+      const paid = table.seats.filter(s => s && s.name && s.paid).length;
+      doc.text(`Stůl ${tableNum}: ${occupied}/10 míst, ${paid} zaplaceno`, 20, y);
+      y += 8;
+      if (y > 270) {
+         doc.addPage();
+         y = 20;
+      }
+   });
+
+   doc.save(`ples-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+function calculateStats() {
+   let seatsOccupied = 0;
+   let seatsPaid = 0;
+
+   Object.keys(state.tables).forEach(tableNum => {
+      const table = state.tables[tableNum];
+      table.seats.forEach(seat => {
+         if (seat && seat.name && seat.name.trim()) {
+            seatsOccupied++;
+            if (seat.paid) seatsPaid++;
+         }
+      });
+   });
+
+   const standingOccupied = state.standing.filter(g => g.name && g.name.trim()).length;
+   const standingPaid = state.standing.filter(g => g.name && g.name.trim() && g.paid).length;
+
+   const total = seatsOccupied + standingOccupied;
+   const revenue = (seatsPaid * PRICE_SEAT) + (standingPaid * PRICE_STANDING);
+   const unpaid = ((seatsOccupied - seatsPaid) * PRICE_SEAT) + ((standingOccupied - standingPaid) * PRICE_STANDING);
+
+   return { total, occupied: total, revenue, unpaid };
+}
+
+document.getElementById('file-import').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    try {
+      const imported = JSON.parse(event.target.result);
+      
+      if (!imported.tables || !imported.standing) {
+        alert('Neplatný formát souboru.');
+        return;
+      }
+      
+      if (confirm('Nahradit aktuální konfiguraci?')) {
+        state = imported;
         saveState();
         renderTables();
-        renderStats();
-      });
-      tableEl.appendChild(statusBadge);
-
-      tableEl.classList.remove("table-status-free","table-status-reserved","table-status-paid");
-      tableEl.classList.add(
-        tableState.status === "reserved" ? "table-status-reserved" :
-        tableState.status === "paid" ? "table-status-paid" : "table-status-free"
-      );
-
-      if (seatsCount > 0) {
-        const chairsContainer = document.createElement("div");
-        chairsContainer.className = "chairs";
-
-        for (let i = 1; i <= seatsCount; i++) {
-          const chair = document.createElement("div");
-          chair.className = "chair";
-          chair.dataset.tableNumber = tableNumber;
-          chair.dataset.seatIndex = String(i);
-
-          const seatState = tableState.seats[i] || { name: "", paid: false, graduate: "" };
-
-          if (!seatState.name || !seatState.name.trim()) {
-            chair.classList.add("chair-empty");
-          } else {
-            chair.classList.add(seatState.paid ? "chair-paid" : "chair-unpaid");
-          }
-
-          const info = document.createElement("div");
-          info.className = "info";
-          if (!seatState.name || !seatState.name.trim()) {
-            info.innerHTML = `Stůl ${tableNumber}, místo ${i}<br><em>prázdné</em>`;
-          } else {
-            info.innerHTML = `Stůl ${tableNumber}, místo ${i}<br>${seatState.name}<br>${
-              seatState.paid ? "✅ Zaplaceno" : "❌ Nezaplaceno"
-            }${seatState.graduate ? "<br>" + seatState.graduate : ""}`;
-          }
-
-          chair.appendChild(info);
-          chair.addEventListener("click", () => openSeatEditor(tableNumber, i));
-          chairsContainer.appendChild(chair);
-        }
-
-        tableEl.appendChild(chairsContainer);
+        renderStandingList();
+        updateStats();
+        updateStandingSummary();
+        alert('Importováno!');
       }
+    } catch (error) {
+      alert('Chyba: ' + error.message);
+    }
+  };
+  
+  reader.readAsText(file);
+  e.target.value = '';
+});
 
-      const labelDiv = document.createElement("div");
-      labelDiv.className = "table-label";
-      labelDiv.contentEditable = "true";
-      labelDiv.textContent = tableState.label || "";
-      labelDiv.setAttribute("placeholder", "Rodina / skupina");
-      labelDiv.addEventListener("input", () => {
-        tableState.label = labelDiv.textContent.trim();
-        saveState();
-      });
-      tableEl.appendChild(labelDiv);
-    });
-  }
+// Check for admin access
+function checkAdminAccess() {
+   const urlParams = new URLSearchParams(window.location.search);
+   if (urlParams.get('admin') === 'true') {
+      currentView = 'admin';
+      document.getElementById('admin-view').classList.add('active');
+      document.getElementById('guest-view').classList.remove('active');
+      document.getElementById('toggle-admin').classList.add('active');
+      document.getElementById('toggle-guest').classList.remove('active');
+   }
+}
 
-  function renderStanding() {
-    const term = (standingSearchInput.value || "").toLowerCase();
-    standingListEl.innerHTML = "";
-
-    state.standing.forEach(person => {
-      if (term && !person.name.toLowerCase().includes(term)) return;
-
-      const row = document.createElement("div");
-      row.className = "person";
-
-      const nameInput = document.createElement("input");
-      nameInput.type = "text";
-      nameInput.className = "person-name";
-      nameInput.value = person.name;
-      nameInput.placeholder = "Jméno";
-      nameInput.addEventListener("input", () => {
-        person.name = nameInput.value;
-        saveState();
-        renderStats();
-      });
-
-      const paidBtn = document.createElement("button");
-      paidBtn.className = "person-paid-btn " + (person.paid ? "is-paid" : "is-unpaid");
-      paidBtn.textContent = person.paid ? "✅ Zaplaceno" : "❌ Nezaplaceno";
-      paidBtn.addEventListener("click", () => {
-        person.paid = !person.paid;
-        saveState();
-        renderStanding();
-        renderStats();
-      });
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "person-delete";
-      deleteBtn.textContent = "×";
-      deleteBtn.title = "Smazat";
-      deleteBtn.addEventListener("click", () => {
-        state.standing = state.standing.filter(p => p.id !== person.id);
-        saveState();
-        renderStanding();
-        renderStats();
-        renderGlobalResults();
-      });
-
-      row.appendChild(nameInput);
-      row.appendChild(paidBtn);
-      row.appendChild(deleteBtn);
-
-      standingListEl.appendChild(row);
-    });
-
-    const occStanding = occupiedStandingCount();
-    standingSummaryEl.textContent = `Obsazeno stání: ${occStanding} / ${STANDING_CAPACITY}`;
-  }
-
-  function highlightSeat(tableNumber, seatIndex) {
-    const selector = `.table[data-table-number="${tableNumber}"] .chair[data-seat-index="${seatIndex}"]`;
-    const chair = document.querySelector(selector);
-    if (!chair) return;
-    chair.classList.add("chair-highlight");
-    chair.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-    setTimeout(() => {
-      chair.classList.remove("chair-highlight");
-    }, 1500);
-  }
-
-  function renderGlobalResults() {
-    const q = (globalSearchInput.value || "").toLowerCase();
-    globalResultsEl.innerHTML = "";
-    if (!q) return;
-
-    const results = [];
-
-    Object.entries(state.tables).forEach(([tableNumber, t]) => {
-      Object.entries(t.seats).forEach(([seatIndex, s]) => {
-        if (s.name && s.name.toLowerCase().includes(q)) {
-          results.push({
-            type: "sezení",
-            name: s.name,
-            paid: s.paid,
-            table: tableNumber,
-            seat: seatIndex
-          });
-        }
-      });
-    });
-
-    state.standing.forEach(p => {
-      if (p.name && p.name.toLowerCase().includes(q)) {
-        results.push({
-          type: "stání",
-          name: p.name,
-          paid: p.paid
-        });
-      }
-    });
-
-    results.forEach(r => {
-      const div = document.createElement("div");
-      div.className = "search-result";
-      if (r.type === "sezení") {
-        div.textContent = `${r.name} – stůl ${r.table}, místo ${r.seat} (${r.paid ? "zaplaceno" : "nezaplaceno"})`;
-        div.addEventListener("click", () => {
-          highlightSeat(r.table, r.seat);
-        });
-      } else {
-        div.textContent = `${r.name} – stání (${r.paid ? "zaplaceno" : "nezaplaceno"})`;
-      }
-      globalResultsEl.appendChild(div);
-    });
-  }
-
-  standingSearchInput.addEventListener("input", () => {
-    renderStanding();
-  });
-
-  standingAddBtn.addEventListener("click", () => {
-    const nextId = state.standing.reduce((max, p) => Math.max(max, p.id), 0) + 1;
-    state.standing.push({ id: nextId, name: "", paid: false });
-    saveState();
-    renderStanding();
-    renderStats();
-  });
-
-  globalSearchInput.addEventListener("input", () => {
-    renderGlobalResults();
-  });
-
-  renderTables();
-  renderStanding();
-  renderStats();
-  renderGlobalResults();
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+   initState();
+   checkAdminAccess();
+   if (currentView === 'admin') {
+      renderTables();
+      renderStandingList();
+      updateStats();
+      updateStandingSummary();
+      updateSearchFilters();
+   } else {
+      renderGuestView();
+   }
+   updateHistoryButtons();
+   updateAnalyticsDisplay();
 });
 </script>
 
-<div class="copyright">© Tereza a ChatGPT &lt;3</div>
 </body>
 </html>
