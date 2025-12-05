@@ -1825,8 +1825,8 @@ const preloadedSeats = {
     { name: "jmeno", paid: true, graduate: "Dan Martinů" },
     { name: "", paid: false, graduate: "Dan Martinů" },
     { name: "", paid: false, graduate: "Dan Martinů" },
-    { name: "", paid: false, graduate: "" },
-    { name: "", paid: false, graduate: "" }
+    { name: "", paid: false, graduate: "Dan Martinů" },
+    { name: "", paid: false, graduate: "Dan Martinů" }
   ],
   "12": [
     { name: "Martina Beranová", paid: true, graduate: "Natka Beranová" },
@@ -2930,15 +2930,17 @@ function updateStats() {
   const standingPaid = state.standing.filter(g => g.name && g.name.trim() && g.paid).length;
   const standingUnpaid = standingOccupied - standingPaid;
   
-  const total = seatsOccupied + standingOccupied;
-  const totalRevenue = (seatsPaid * PRICE_SEAT) + (standingPaid * PRICE_STANDING);
-  const totalUnpaid = (seatsUnpaid * PRICE_SEAT) + (standingUnpaid * PRICE_STANDING);
-  
-  document.getElementById('stat-seats').textContent = seatsOccupied;
-  document.getElementById('stat-standing').textContent = standingOccupied;
-  document.getElementById('stat-total').textContent = `${total} / 230`;
-  document.getElementById('stat-revenue').textContent = `${totalRevenue.toLocaleString('cs-CZ')} Kč`;
-  document.getElementById('stat-unpaid').textContent = `${totalUnpaid.toLocaleString('cs-CZ')} Kč`;
+   const totalSeatsCapacity = Object.values(state.tables).reduce((sum, table) => sum + table.seats.length, 0);
+   const totalCapacity = totalSeatsCapacity + 30; // 30 standing
+   const total = seatsOccupied + standingOccupied;
+   const totalRevenue = (seatsPaid * PRICE_SEAT) + (standingPaid * PRICE_STANDING);
+   const totalUnpaid = (seatsUnpaid * PRICE_SEAT) + (standingUnpaid * PRICE_STANDING);
+
+   document.getElementById('stat-seats').textContent = seatsOccupied;
+   document.getElementById('stat-standing').textContent = standingOccupied;
+   document.getElementById('stat-total').textContent = `${total} / ${totalCapacity}`;
+   document.getElementById('stat-revenue').textContent = `${totalRevenue.toLocaleString('cs-CZ')} Kč`;
+   document.getElementById('stat-unpaid').textContent = `${totalUnpaid.toLocaleString('cs-CZ')} Kč`;
 }
 
 // Guest view
@@ -2956,8 +2958,10 @@ function renderGuestView() {
     });
   });
   
-  const total = seatsOccupied + standingOccupied;
-  const available = 230 - total;
+   const totalSeatsCapacity = Object.values(state.tables).reduce((sum, table) => sum + table.seats.length, 0);
+   const totalCapacity = totalSeatsCapacity + 30;
+   const total = seatsOccupied + standingOccupied;
+   const available = totalCapacity - total;
   
   guestStatsEl.innerHTML = `
     <div class="guest-stat-card">
