@@ -1699,16 +1699,16 @@ function enterAdmin() {
 // Pre-loaded seat data - converted from `planekhngrszn 1.html`
 const preloadedSeats = {
   "1": [
-    { name: "Dan Huml", paid: true, graduate: "všichni" },
+    { name: "Štodtová", paid: false, graduate: "všichni" },
     { name: "Dagmar Hloušková", paid: false, graduate: "všichni" },
     { name: "Dáša manžel", paid: false, graduate: "všichni" },
-    { name: "Suchý", paid: true, graduate: "všichni" },
-    { name: "Knutsonová", paid: false, graduate: "všichni" },
+    { name: "Ředitel", paid: false, graduate: "všichni" },
+    { name: "Ředitel doprovod", paid: false, graduate: "všichni" },
     { name: "Jáklová?", paid: false, graduate: "všichni" },
     { name: "Pokorná?", paid: false, graduate: "všichni" },
-    { name: "", paid: false, graduate: "všichni" },
-    { name: "", paid: false, graduate: "všichni" },
-    { name: "", paid: false, graduate: "všichni" }
+    { name: "Slabá", paid: false, graduate: "všichni" },
+    { name: "Štodtová", paid: false, graduate: "všichni" },
+    { name: "Štodtová", paid: false, graduate: "všichni" }
   ],
   "2": [
     { name: "Jaroslav Dvořák", paid: true, graduate: "všichni" },
@@ -1937,10 +1937,10 @@ const preloadedSeats = {
     { name: "jmeno", paid: true, graduate: "veřejnost od Macka" }
   ],
    "24": [
-     { name: "", paid: false, graduate: "učitelé" },
-     { name: "", paid: false, graduate: "učitelé" },
-     { name: "", paid: false, graduate: "učitelé" },
-     { name: "", paid: false, graduate: "učitelé" }
+     { name: "Knutsotová", paid: false, graduate: "učitelé" },
+     { name: "Knutsonová manžel", paid: false, graduate: "učitelé" },
+     { name: "Dan Huml", paid: true, graduate: "učitelé" },
+     { name: "Bohumír Suchý", paid: true, graduate: "učitelé" }
    ],
   "25": [
     { name: "Ondřej Horák", paid: true, graduate: "Dan Záruba" },
@@ -3416,6 +3416,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
 
 
 
