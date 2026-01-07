@@ -1922,7 +1922,7 @@ const preloadedSeats = {
      { name: "Magdaléna Čapková", paid: true, graduate: "Jan Čapka" },
      { name: "Ivana Čapková", paid: true, graduate: "Jan Čapka" },
      { name: "Jiří Čapka", paid: true, graduate: "Jan Čapka" },
-     { name: "Milan Zima", paid: false, graduate: "Pepa Sokol" }
+     { name: "", paid: false, graduate: "" }
    ],
    "22": [
      { name: "Tomáš Kousal", paid: false, graduate: "Radek Horčičák" },
@@ -2018,11 +2018,10 @@ let state = {
     { id: 19, name: "Michal Křička", paid: true },
     { id: 20, name: "Mišův doprovod", paid: true },
     { id: 21, name: "Danko Panko", paid: true },
-    { id: 22, name: "SOKOL - DOPLNIT", paid: false },
-    { id: 23, name: "SOKOL - DOPLNIT", paid: false },
-    { id: 24, name: "SOKOL - DOPLNIT", paid: false },
-    { id: 25, name: "SOKOL - DOPLNIT", paid: false },
-    { id: 26, name: "Adam Daněk", paid: true },
+    { id: 22, name: "Jana Horáková", paid: false },
+    { id: 23, name: "Sabina Novotná", paid: false },
+    { id: 24, name: "Milan Zima", paid: false },
+    { id: 25, name: "Adam Daněk", paid: true },
   ],
   nextStandingId: 17
 };
@@ -2115,11 +2114,10 @@ function validateState() {
             { id: 19, name: "Michal Křička", paid: true },
             { id: 20, name: "Mišův doprovod", paid: true },
             { id: 21, name: "Danko Panko", paid: true },
-            { id: 22, name: "SOKOL - DOPLNIT", paid: false },
-            { id: 23, name: "SOKOL - DOPLNIT", paid: false },
-            { id: 24, name: "SOKOL - DOPLNIT", paid: false },
-            { id: 25, name: "SOKOL - DOPLNIT", paid: false },
-            { id: 26, name: "Adam Daněk", paid: true },
+            { id: 22, name: "Jana Horáková", paid: false },
+            { id: 23, name: "Sabina Novotná", paid: false },
+            { id: 24, name: "Milan Zima", paid: false },
+            { id: 25, name: "Adam Daněk", paid: true },
         ];
         state.nextStandingId = 17;
     }
@@ -3416,6 +3414,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
 
 
 
