@@ -1869,14 +1869,14 @@ const preloadedSeats = {
      { name: "Pavel Roháček", paid: true, graduate: "Damián Roháček" }
    ],
    "16": [
-     { name: "Pavla Jirásková", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Matěj Jirásek", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Tomáš Jirásek", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Anna Marie Jirásková", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Tomáš Bělik", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Amálie Mihulková", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Andrea Dymešová", paid: false, graduate: "Matěj Jirásek" },
-     { name: "Veronika Dymešová", paid: false, graduate: "Matěj Jirásek" }
+     { name: "Pavla Jirásková", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Matěj Jirásek", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Tomáš Jirásek", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Anna Marie Jirásková", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Tomáš Bělik", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Amálie Mihulková", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Andrea Dymešová", paid: true, graduate: "Matěj Jirásek" },
+     { name: "Veronika Dymešová", paid: true, graduate: "Matěj Jirásek" }
    ],
    "17": [
      { name: "jmeno", paid: true, graduate: "Martin Kuchař" },
@@ -2004,7 +2004,7 @@ let state = {
     { id: 5, name: "Anastázie Stránská", paid: true },
     { id: 6, name: "Věrka Kalousková", paid: true },
     { id: 7, name: "Ráďa Pilná", paid: true },
-    { id: 8, name: "Adéla Janatova", paid: false },
+    { id: 8, name: "Adéla Janatova", paid: true },
     { id: 9, name: "Jakub Burianek", paid: false },
     { id: 10, name: "Jiří Tázler", paid: false },
     { id: 11, name: "Dominik Křížek", paid: false },
@@ -2026,7 +2026,7 @@ let state = {
     { id: 27, name: "Ester Čeřovská", paid: true },
     { id: 28, name: "Patrik Chromý", paid: true },
     { id: 29, name: "Matouš Kolátor", paid: true },
-    { id: 30, name: "Aneta Dufková", paid: false }
+    { id: 30, name: "Aneta Dufková", paid: true }
   ],
   nextStandingId: 17
 };
@@ -2098,35 +2098,36 @@ function validateState() {
     // If standing is empty, initialize with default
     if (state.standing.length === 0) {
         state.standing = [
-            { id: 1, name: "Hana Kovaříková", paid: true },
-            { id: 2, name: "Dardek Halbich", paid: false },
-            { id: 3, name: "Eliška Odlová", paid: false },
-            { id: 4, name: "Hanička Černá", paid: true },
-            { id: 5, name: "Anastázie Stránská", paid: true },
-            { id: 6, name: "Věrka Kalousková", paid: true },
-            { id: 7, name: "Ráďa Pilná", paid: true },
-            { id: 8, name: "Honza Hudec", paid: false },
-            { id: 9, name: "Jakub Burianek", paid: false },
-            { id: 10, name: "Jiří Tázler", paid: false },
-            { id: 11, name: "Dominik Křížek", paid: false },
-            { id: 12, name: "Hanča Ježková", paid: false },
-            { id: 13, name: "Ela Chocholáčová", paid: false },
-            { id: 14, name: "Tomášek Jakubsk", paid: false },
-            { id: 15, name: "Pavlína Švadláková", paid: false },
-            { id: 16, name: "Libor Polák", paid: true },
-            { id: 17, name: "Patrik Brentner", paid: false },
-            { id: 18, name: "ŠTEFAN - DOPLNIT", paid: true },
-            { id: 19, name: "Michal Křička", paid: true },
-            { id: 20, name: "Mišův doprovod", paid: true },
-            { id: 21, name: "Danko Panko", paid: true },
-            { id: 22, name: "Jana Horáková", paid: false },
-            { id: 23, name: "Sabina Novotná", paid: false },
-            { id: 24, name: "Milan Zima", paid: false },
-            { id: 25, name: "Adam Daněk", paid: true },
-            { id: 26, name: "Jana Trenklerová", paid: true },
-            { id: 27, name: "Ester Čeřovská", paid: true },
-            { id: 28, name: "Patrik Chromý", paid: true },
-            { id: 29, name: "Matouš Kolátor", paid: true },
+    { id: 1, name: "Hana Kovaříková", paid: true },
+    { id: 2, name: "Dardek Halbich", paid: true },
+    { id: 3, name: "Eliška Odlová", paid: true },
+    { id: 4, name: "Hanička Černá", paid: true },
+    { id: 5, name: "Anastázie Stránská", paid: true },
+    { id: 6, name: "Věrka Kalousková", paid: true },
+    { id: 7, name: "Ráďa Pilná", paid: true },
+    { id: 8, name: "Adéla Janatova", paid: true },
+    { id: 9, name: "Jakub Burianek", paid: false },
+    { id: 10, name: "Jiří Tázler", paid: false },
+    { id: 11, name: "Dominik Křížek", paid: false },
+    { id: 12, name: "Hanča Ježková", paid: false },
+    { id: 13, name: "Ela Chocholáčová", paid: false },
+    { id: 14, name: "Tomášek Jakubsk", paid: false },
+    { id: 15, name: "Pavlína Švadláková", paid: false },
+    { id: 16, name: "Libor Polák", paid: true },
+    { id: 17, name: "Patrik Brentner", paid: true },
+    { id: 18, name: "Kareeeel", paid: true },
+    { id: 19, name: "Michal Křička", paid: true },
+    { id: 20, name: "Mišův doprovod", paid: true },
+    { id: 21, name: "Danko Panko", paid: true },
+    { id: 22, name: "Jana Horáková", paid: false },
+    { id: 23, name: "Sabina Novotná", paid: false },
+    { id: 24, name: "Milan Zima", paid: false },
+    { id: 25, name: "Adam Daněk", paid: true },
+    { id: 26, name: "Jana Trenklerová", paid: true },
+    { id: 27, name: "Ester Čeřovská", paid: true },
+    { id: 28, name: "Patrik Chromý", paid: true },
+    { id: 29, name: "Matouš Kolátor", paid: true },
+    { id: 30, name: "Aneta Dufková", paid: true }
         ];
         state.nextStandingId = 17;
     }
@@ -3423,6 +3424,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
 
 
 
